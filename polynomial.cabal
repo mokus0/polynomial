@@ -1,0 +1,38 @@
+name:                   polynomial
+version:                0.5
+stability:              provisional
+
+cabal-version:          >= 1.2
+build-type:             Simple
+
+author:                 James Cook <mokus@deepbondi.net>
+maintainer:             James Cook <mokus@deepbondi.net>
+license:                PublicDomain
+homepage:               /dev/null
+
+category:               Math, Numerical
+synopsis:               Polynomials
+description:            A type for representing polynomials, several functions
+                        for manipulating and evaluating them, and several
+                        interesting polynomial sequences.
+
+source-repository head
+  type: darcs
+  location: http://code.haskell.org/~mokus/polynomial
+
+Library
+  ghc-options:          -Wall -fno-warn-name-shadowing
+  hs-source-dirs:       src
+  exposed-modules:      Math.Polynomial
+                        Math.Polynomial.Bernstein
+                        Math.Polynomial.Chebyshev
+                        Math.Polynomial.Interpolation
+                        Math.Polynomial.Lagrange
+                        Math.Polynomial.Legendre
+                        Math.Polynomial.Newton
+                        Math.Polynomial.NumInstance
+                        Math.Polynomial.Pretty
+  other-modules:        Data.List.ZipSum
+                        Math.Polynomial.Type
+                        
+  build-depends:        base >= 3 && <5, pretty, prettyclass, vector-space
