@@ -11,8 +11,8 @@ license:                Unspecified
 homepage:               /dev/null
 
 category:               Unclassified
-synopsis:               I'm too lame to describe my project
-description:            I'm too lame to describe my project
+synopsis:               Test suite for polynomial package.
+description:            Test suite for polynomial package.
 
 Executable polynomial-tests
   ghc-options:          -threaded
