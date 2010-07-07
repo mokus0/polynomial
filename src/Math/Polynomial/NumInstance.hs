@@ -12,7 +12,7 @@ import Math.Polynomial
 instance Num a => Num (Poly a) where
     fromInteger i = poly LE [fromInteger i]
     (+) = addPoly
-    negate = fmap negate
+    negate = negatePoly
     (*) = multPoly
 
     abs     = error    "abs cannot be defined for the Poly type"
