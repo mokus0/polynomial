@@ -74,7 +74,7 @@ instance (Num a, Eq a) => Eq (Poly a) where
         | endianness p == endianness q
         = coeffs (trim p) == coeffs (trim q)
         | otherwise 
-        = polyCoeffs BE p == polyCoeffs BE p
+        = polyCoeffs BE p == polyCoeffs BE q
         
 
 -- -- Ord would be nice for some purposes, but it really just doesn't

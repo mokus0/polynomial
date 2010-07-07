@@ -22,10 +22,12 @@ bernstein =
         -- pascal's triangle
         ptri = [1] : [ 1 : zipWith (+) row (tail row) ++ [1] | row <- ptri]
 
-evalBernstein :: (Integral a, Fractional b) => a -> a -> b -> b
-evalBernstein n v t = nCv * t^^v * (1-t)^^(n-v)
+evalBernstein :: (Integral a, Num b) => a -> a -> b -> b
+evalBernstein n v t = fromInteger nCv * t^^v * (1-t)^^(n-v)
     where
-        nCv = product (zipWith ((/) `on` fromIntegral) [1..n] ([1..v] ++ [1..n-v]))
+        n' = toInteger n
+        v' = toInteger v
+        nCv = product (zipWith div [1..n'] ([1..v'] ++ [1..n'-v']))
 
 bernsteinFit :: (Fractional b, Integral a) => a -> (b -> b) -> [b]
 bernsteinFit n f = [f (fromIntegral v / fromIntegral n) | v <- [0..n]]

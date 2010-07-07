@@ -116,8 +116,11 @@ contractPoly (polyCoeffs LE -> cs) a = (poly LE q, r)
         (r,q) = mapAccumR cut 0 cs
 
 gcdPoly :: Fractional a => Poly a -> Poly a -> Poly a
-gcdPoly a (polyIsZero -> True)      =  monic a
-gcdPoly a b                         =  gcdPoly b (a `remPoly` b)
+gcdPoly a b 
+    | polyIsZero b  = if polyIsZero a
+        then error "gcdPoly: gcdPoly zero zero is undefined"
+        else monic a
+    | otherwise     = gcdPoly b (a `remPoly` b)
 
 -- |Normalize a polynomial so that its highest-order coefficient is 1
 monic :: Fractional a => Poly a -> Poly a
@@ -129,7 +132,7 @@ monic p = case polyCoeffs BE p of
 polyDeriv :: Num a => Poly a -> Poly a
 polyDeriv (polyCoeffs LE -> cs) = poly LE
     [ c * n
-    | c <- tail cs
+    | c <- drop 1 cs
     | n <- iterate (1+) 1
     ]
 
