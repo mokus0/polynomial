@@ -31,8 +31,8 @@ Library
                         Math.Polynomial.Legendre
                         Math.Polynomial.Newton
                         Math.Polynomial.NumInstance
-                        Math.Polynomial.Pretty
   other-modules:        Data.List.ZipSum
                         Math.Polynomial.Type
+                        Math.Polynomial.Pretty
                         
   build-depends:        base >= 3 && <5, pretty, prettyclass, vector-space

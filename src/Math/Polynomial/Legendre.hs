@@ -3,7 +3,10 @@ module Math.Polynomial.Legendre where
 
 import Math.Polynomial
 
--- |The Legendre polynomials with 'Rational' coefficients.
+-- |The Legendre polynomials with 'Rational' coefficients.  These polynomials 
+-- form an orthogonal basis of the space of all polynomials, relative to the 
+-- L2 inner product on [-1,1] (which is given by integrating the product of
+-- 2 polynomials over that range).
 legendres :: [Poly Rational]
 legendres = one : x : 
     [ multPoly

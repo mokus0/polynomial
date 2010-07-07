@@ -7,6 +7,8 @@
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 -- This code is a big ugly mess, but it more or less works.  Someday I might
 -- get around to cleaning it up.
+
+-- |This module exports a 'Pretty' instance for the 'Poly' type.
 module Math.Polynomial.Pretty () where
 
 import Math.Polynomial.Type
