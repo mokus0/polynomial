@@ -1,8 +1,9 @@
-{-# LANGUAGE ExtendedDefaultRules #-}
+{-# LANGUAGE ExtendedDefaultRules, TypeSynonymInstances, TypeFamilies #-}
 module PolynomialTests where
 
 import Control.Applicative
 import Data.List
+import Data.VectorSpace
 import Math.Polynomial
 import Math.Polynomial.Lagrange
 import Test.Framework (testGroup)
@@ -20,6 +21,14 @@ instance Arbitrary Endianness where
 
 instance (Num a, Arbitrary a) => Arbitrary (Poly a) where
     arbitrary = poly <$> arbitrary <*> arbitrary
+
+instance AdditiveGroup Rational where
+    zeroV = 0
+    (^+^) = (+)
+    negateV = negate
+instance VectorSpace Rational where
+    type Scalar Rational = Rational
+    (*^) = (*)
 
 order p = length (polyCoeffs LE p)
 
@@ -68,15 +77,43 @@ tests =
                 Just zs -> all (== 0) zs
                 Nothing -> False
         ]
-    , testGroup "Eq instance"
-        [ testProperty "reflexive"  $ \p     -> p == p
-        , testProperty "symmetric"  $ \p q   -> (p==q) == (q==p)
-        , testProperty "transitive" $ \p q r -> (p == q && q == r) ==> p == r
-        , testProperty "sane"       $ \cs ds end1 end2 -> 
-            let p = poly end1 cs; q = poly end1 ds
-             in (p==q) == (polyCoeffs end2 p == polyCoeffs end2 q)
-        , testProperty "endianness-independent" $ \cs end ->
-            poly end cs == poly (rev end) (reverse cs)
+    , testGroup "instances"
+        [ testGroup "Eq"
+            [ testProperty "reflexive"  $ \p     -> p == p
+            , testProperty "symmetric"  $ \p q   -> (p==q) == (q==p)
+            , testProperty "transitive" $ \p q r -> (p == q && q == r) ==> p == r
+            , testProperty "sane"       $ \cs ds end1 end2 -> 
+                let p = poly end1 cs; q = poly end1 ds
+                 in (p==q) == (polyCoeffs end2 p == polyCoeffs end2 q)
+            , testProperty "endianness-independent" $ \cs end ->
+                poly end cs == poly (rev end) (reverse cs)
+            ]
+        , testGroup "AdditiveGroup"
+            [ testGroup "zeroV"
+                [ testCase "polyIsZero zeroV" (assert (polyIsZero zeroV))
+                , testProperty "(p == zeroV) == polyIsZero p" $ \p ->
+                    (p == zeroV) == polyIsZero p
+                , testProperty "evalPoly zeroV x == zeroV" $ \x ->
+                    evalPoly zeroV x == zeroV
+                ]
+            , testGroup "^+^"
+                [ testProperty "left  unit"  $ \p     -> zeroV ^+^ p == p
+                , testProperty "right unit"  $ \p     -> p ^+^ zeroV == p
+                , testProperty "commutative" $ \p q   -> p ^+^ q == q ^+^ p
+                , testProperty "associative" $ \p q r ->
+                    p ^+^ (q ^+^ r) == (p ^+^ q) ^+^ r
+                , testProperty "sane" $ \p q x ->
+                    evalPoly (p ^+^ q) x ==
+                    evalPoly p x ^+^ evalPoly q x
+                ]
+            , testGroup "negateV"
+                [ testProperty "sane" $ \p -> p ^+^ negateV p == zeroV
+                ]
+            ]
+        , testGroup "VectorSpace"
+            [ testProperty "sane" $ \s p x ->
+                evalPoly (s *^ (p :: Poly Rational)) x == s *^ evalPoly p x
+            ]
         ]
     , testGroup "addPoly"
         [ testProperty "left  unit"  $ \p     -> addPoly zero p == p
@@ -116,19 +153,29 @@ tests =
         [ testProperty "cancel"   $ \p -> polyIsOne (powPoly p 0)
         , testProperty "unit"     $ \p -> powPoly p 1 == p
         , testProperty "multiply" $ \p (NonNegative a) (NonNegative b) ->
-            let a' = a `mod` 10; b' = b `mod` 10
+            let a' = a `mod` 8; b' = b `mod` 8
              in multPoly (powPoly p a') (powPoly p b') == powPoly p (a' + b')
         , testProperty "compose"  $ \p (NonNegative a) (NonNegative b) ->
-            let a' = a `mod` 8; b' = b `mod` 8
+            let a' = a `mod` 6; b' = b `mod` 6
              in powPoly (powPoly p b') a' == powPoly p (a' * b')
         , testProperty "sane"     $ \p (NonNegative n) ->
-            let n' = n `mod` 20
-             in powPoly p n == foldl' multPoly one (replicate n p)
+            let n' = n `mod` 16
+             in powPoly p n' == foldl' multPoly one (replicate n' p)
         ]
     , testGroup "quotRemPoly"
         [ testProperty "sane" $ \a b -> 
             not (polyIsZero b) ==> case quotRemPoly a b of
                 (q, r) -> addPoly (multPoly q b) r == a
+        ]
+    , testGroup "quotPoly"
+        [ testProperty "sane" $ \a b -> 
+            not (polyIsZero b) ==> 
+            quotPoly a b == fst (quotRemPoly a b)
+        ]
+    , testGroup "remPoly"
+        [ testProperty "sane" $ \a b -> 
+            not (polyIsZero b) ==> 
+            remPoly a b == snd (quotRemPoly a b)
         ]
     , testGroup "evalPolyDeriv"
         [ testProperty "zero" $ \t -> evalPolyDeriv zero t == (0,0)
@@ -156,9 +203,10 @@ tests =
         ]
     , testGroup "gcdPoly"
         [ testProperty "sane" $ \p q ->
-            (order p + order q <= 20) ==>
-            let g = gcdPoly p q
-             in all polyIsZero [p `remPoly` g, q `remPoly` g]
+            (order p + order q <= 20) &&
+            not (all polyIsZero [p,q]) ==>
+                let g = gcdPoly p q
+                 in all polyIsZero [p `remPoly` g, q `remPoly` g]
         , testProperty "monic" $ \p q ->
             (order p + order q <= 20) &&
             not (all polyIsZero [p,q]) ==>
@@ -166,11 +214,13 @@ tests =
         , testProperty "right cancel" $ \p -> gcdPoly p one == one
         , testProperty "left  cancel" $ \p -> gcdPoly one p == one
         , testProperty "commutative" $ \p q -> 
-            (order p + order q <= 20) ==>
-            gcdPoly p q == gcdPoly q p
+            (order p + order q <= 20) &&
+            not (all polyIsZero [p,q]) ==>
+                gcdPoly p q == gcdPoly q p
         , testProperty "associative" $ \p q r -> 
-            (order p + order q + order r <= 20) ==>
-            gcdPoly (gcdPoly p q) r == gcdPoly p (gcdPoly q r)
+            (order p + order q + order r <= 20) &&
+            not (any (all polyIsZero) [[p,q], [p,r], [q,r]]) ==>
+                gcdPoly (gcdPoly p q) r == gcdPoly p (gcdPoly q r)
         , testProperty "roots" $ \pScale (Ordered pRoots) qScale (Ordered qRoots) ->
             (length pRoots + length qRoots <= 20) ==>
             let p = scalePoly pScale (lagrange pRoots)

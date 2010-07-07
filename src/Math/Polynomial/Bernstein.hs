@@ -1,9 +1,15 @@
 {-# LANGUAGE ParallelListComp #-}
-module Math.Polynomial.Bernstein where
+module Math.Polynomial.Bernstein
+    ( bernstein
+    , evalBernstein
+    , bernsteinFit
+    , evalBernsteinSeries
+    , deCasteljau
+    , splitBernsteinSeries
+    ) where
 
 import Math.Polynomial
 import Data.List
-import Data.Function
 
 -- |The Bernstein basis polynomials.  Each inner list is a basis.  The outer
 -- list is a list of bases in ascending polynomial order.
@@ -23,11 +29,11 @@ bernstein =
         ptri = [1] : [ 1 : zipWith (+) row (tail row) ++ [1] | row <- ptri]
 
 evalBernstein :: (Integral a, Num b) => a -> a -> b -> b
-evalBernstein n v t = fromInteger nCv * t^^v * (1-t)^^(n-v)
+evalBernstein n v t = fromInteger nCv * t^v * (1-t)^(n-v)
     where
         n' = toInteger n
         v' = toInteger v
-        nCv = product (zipWith div [1..n'] ([1..v'] ++ [1..n'-v']))
+        nCv = product [1..n'] `div` (product [1..v'] * product [1..n'-v'])
 
 bernsteinFit :: (Fractional b, Integral a) => a -> (b -> b) -> [b]
 bernsteinFit n f = [f (fromIntegral v / fromIntegral n) | v <- [0..n]]

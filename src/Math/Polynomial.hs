@@ -1,4 +1,4 @@
-{-# LANGUAGE ParallelListComp, ViewPatterns #-}
+{-# LANGUAGE ParallelListComp, ViewPatterns, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Math.Polynomial
     ( Endianness(..)
@@ -16,12 +16,11 @@ module Math.Polynomial
 import Math.Polynomial.Type
 import Math.Polynomial.Pretty ({- instance -})
 
-import Data.AdditiveGroup
 import Data.List
 import Data.List.ZipSum
 
 zero :: Num a => Poly a
-zero = zeroV
+zero = poly LE []
 
 one :: Num a => Poly a
 one = poly LE [1]
@@ -33,11 +32,14 @@ scalePoly :: Num a => a -> Poly a -> Poly a
 scalePoly s p = fmap (s*) p
 
 negatePoly :: Num a => Poly a -> Poly a
-negatePoly = negateV
+negatePoly = fmap negate
 
 addPoly :: Num a => Poly a -> Poly a -> Poly a
-addPoly = (^+^)
+addPoly (polyCoeffs LE ->  a) (polyCoeffs LE ->  b) = poly LE (zipSum a b)
 
+{-# RULES
+  "sum Poly"    forall ps. foldl addPoly zero ps = sumPolys ps
+  #-}
 sumPolys :: Num a => [Poly a] -> Poly a
 sumPolys [] = zero
 sumPolys ps = poly LE (foldl1 zipSum (map (polyCoeffs LE) ps))
