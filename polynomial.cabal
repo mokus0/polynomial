@@ -2,7 +2,7 @@ name:                   polynomial
 version:                0.5
 stability:              provisional
 
-cabal-version:          >= 1.2
+cabal-version:          >= 1.6
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
