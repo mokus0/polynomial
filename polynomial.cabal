@@ -1,5 +1,5 @@
 name:                   polynomial
-version:                0.5
+version:                0.5.1
 stability:              provisional
 
 cabal-version:          >= 1.6
