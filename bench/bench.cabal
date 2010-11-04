@@ -19,5 +19,6 @@ Executable polynomial-bench
   main-is:              Bench.hs
   build-depends:        base >= 3 && <5, 
                         criterion,
+                        deepseq,
                         polynomial,
                         vector-space
