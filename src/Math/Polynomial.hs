@@ -195,7 +195,7 @@ gcdPoly a b
         else monic a
     | otherwise     = gcdPoly b (a `remPoly` b)
 
--- |Normalize a polynomial so that its highest-order coefficient is 1
+-- |(internal) Normalize a polynomial so that its highest-order coefficient is 1
 monic :: Fractional a => Poly a -> Poly a
 monic p = case polyCoeffs BE p of
     []      -> poly BE []
