@@ -135,6 +135,9 @@ composePoly (polyCoeffs LE -> cs) g = foldr mul zero cs
         -- > composePoly f g = evalPoly (fmap constPoly f) g
         mul c acc = addPoly (constPoly c) (multPoly acc g)
 
+-- |Evaluate a polynomial at a point or, equivalently, convert a polynomial
+-- to the function it represents.  For example, @evalPoly 'x' = 'id'@ and 
+-- @evalPoly ('constPoly' k) = 'const' k.@
 evalPoly :: Num a => Poly a -> a -> a
 evalPoly (polyCoeffs LE -> cs) x = foldr mul 0 cs
     where
