@@ -93,7 +93,7 @@ powPoly p n
 -- 
 -- > addPoly (multPoly q b) r == a
 quotRemPoly :: Fractional a => Poly a -> Poly a -> (Poly a, Poly a)
-quotRemPoly a b | polyIsZero b = error "quotRemPoly: divide by zero"
+quotRemPoly _ b | polyIsZero b = error "quotRemPoly: divide by zero"
 quotRemPoly (polyCoeffs BE -> u) (polyCoeffs BE -> v)
     = go [] u (length u - length v)
     where
@@ -111,7 +111,7 @@ quotPoly u v
     | polyIsZero v  = error "quotPoly: divide by zero"
     | otherwise     = fst (quotRemPoly u v)
 remPoly :: Fractional a => Poly a -> Poly a -> Poly a
-remPoly u v | polyIsZero v = error "remPoly: divide by zero"
+remPoly _ b | polyIsZero b = error "remPoly: divide by zero"
 remPoly (polyCoeffs BE -> u) (polyCoeffs BE -> v)
     = go u (length u - length v)
     where
