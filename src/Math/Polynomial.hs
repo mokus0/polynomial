@@ -135,6 +135,13 @@ composePoly (polyCoeffs LE -> cs) (polyCoeffs LE -> ds) = poly LE (foldr mul [] 
         -- Implementation note: this is a hand-inlining of the following
         -- (with the 'Num' instance in "Math.Polynomial.NumInstance"):
         -- > composePoly f g = evalPoly (fmap constPoly f) g
+        -- 
+        -- This is a very expensive operation, something like
+        -- O(length cs ^ 2 * length ds) I believe. There may be some more 
+        -- tricks to improve that, but I suspect there isn't much room for 
+        -- improvement. The number of terms in the resulting polynomial is 
+        -- O(length cs * length ds) already, and each one is the sum of 
+        -- quite a few terms.
         mul c acc = addScalarLE c (multPolyLE acc ds)
 
 -- |(internal) add a scalar to a list of polynomial coefficients in LE order
