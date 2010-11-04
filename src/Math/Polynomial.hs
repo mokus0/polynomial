@@ -3,8 +3,9 @@
 module Math.Polynomial
     ( Endianness(..)
     , Poly, poly, polyCoeffs, polyIsZero, polyIsOne
-    , zero, one, x
+    , zero, one, constPoly, x
     , scalePoly, negatePoly
+    , composePoly
     , addPoly, sumPolys, multPoly, powPoly
     , quotRemPoly, quotPoly, remPoly
     , evalPoly, evalPolyDeriv, evalPolyDerivs
