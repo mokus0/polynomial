@@ -54,7 +54,7 @@ evalTU :: Num a => Int -> a -> (a,a)
 evalTU n x = (ts!!n, us!!n)
     where (ts,us) = evalTsUs x
 
--- |Evaluate all the Chebyshev polynomials of the both kinds at a point X.
+-- |Evaluate all the Chebyshev polynomials of both kinds at a point X.
 evalTsUs :: Num a => a -> ([a], [a])
 evalTsUs x = (ts, tail us)
     where
