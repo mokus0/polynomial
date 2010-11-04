@@ -35,4 +35,4 @@ Library
                         Math.Polynomial.Type
                         Math.Polynomial.Pretty
                         
-  build-depends:        base >= 3 && <5, pretty, prettyclass, vector-space
+  build-depends:        base >= 3 && <5, deepseq, pretty, prettyclass, vector-space

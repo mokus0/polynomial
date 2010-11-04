@@ -7,6 +7,7 @@ module Math.Polynomial.Type
     , polyIsZero, polyIsOne
     ) where
 
+import Control.DeepSeq
 -- import Data.List.Extras.LazyLength
 import Data.AdditiveGroup
 import Data.VectorSpace
@@ -73,11 +74,17 @@ data Endianness
     -- ^ Little-Endian (head is const term)
     deriving (Eq, Ord, Enum, Bounded, Show)
 
+instance NFData Endianness where
+    rnf x = seq x ()
+
 data Poly a = Poly 
     { endianness :: !Endianness
     , _trimmed   :: !Bool
     , coeffs     :: ![a]
     }
+
+instance NFData a => NFData (Poly a) where
+    rnf (Poly e t c) = rnf e `seq` rnf t `seq` rnf c
 
 instance Num a => Show (Poly a) where
     showsPrec p (trim (0==) -> Poly end _ cs) 
