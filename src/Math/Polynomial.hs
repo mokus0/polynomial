@@ -42,6 +42,7 @@ constPoly x = poly LE [x]
 -- 
 -- > evalPoly g x = s * evalPoly f x
 scalePoly :: Num a => a -> Poly a -> Poly a
+scalePoly 0 _ = zero
 scalePoly s p = fmap (s*) p
 
 -- |Given some polynomial 'f', computes the polynomial 'g' such that:
