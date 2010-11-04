@@ -143,7 +143,13 @@ composePoly (polyCoeffs LE -> cs) (polyCoeffs LE -> ds) = poly LE (foldr mul [] 
         -- Implementation note: this is a hand-inlining of the following
         -- (with the 'Num' instance in "Math.Polynomial.NumInstance"):
         -- > composePoly f g = evalPoly (fmap constPoly f) g
-        mul c acc = zipSum [c] (multPolyLE acc ds)
+        mul c acc = addScalarLE c (multPolyLE acc ds)
+
+-- |(internal) add a scalar to a list of polynomial coefficients in LE order
+addScalarLE :: Num a => a -> [a] -> [a]
+addScalarLE 0 bs = bs
+addScalarLE a [] = [a]
+addScalarLE a (b:bs) = (a + b) : bs
 
 -- |Evaluate a polynomial at a point or, equivalently, convert a polynomial
 -- to the function it represents.  For example, @evalPoly 'x' = 'id'@ and 
