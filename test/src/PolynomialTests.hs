@@ -131,6 +131,10 @@ tests =
     , testGroup "negatePoly"
         [ testProperty "sane" $ \p -> polyIsZero (addPoly p (negatePoly p))
         ]
+    , testGroup "composePoly"
+        [ testProperty "sane" $ \f g x -> evalPoly (composePoly f g) x 
+                                       == evalPoly f (evalPoly g x)
+        ]
     , testGroup "scalePoly"
         [ testProperty "sane" $ \s p x ->
             evalPoly (scalePoly s p) x == s * evalPoly p x

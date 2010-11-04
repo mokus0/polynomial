@@ -67,7 +67,11 @@ sumPolys ps = poly LE (foldl1 zipSum (map (polyCoeffs LE) ps))
 -- 
 -- > evalPoly h x = evalPoly f x * evalPoly g x
 multPoly :: Num a => Poly a -> Poly a -> Poly a
-multPoly (polyCoeffs LE -> xs) (polyCoeffs LE -> ys) = poly LE $ multX ys
+multPoly (polyCoeffs LE -> xs) (polyCoeffs LE -> ys) = poly LE (multPolyLE xs ys)
+
+-- |(Internal): multiply polynomials in LE order
+multPolyLE :: Num a => [a] -> [a] -> [a]
+multPolyLE xs ys = multX ys
     where
         multX (0:ys) = 0:multX ys
         multX ys = foldl zipSum []
@@ -128,12 +132,12 @@ remPoly (polyCoeffs BE -> u) (polyCoeffs BE -> v)
 -- 
 -- > evalPoly h = evalPoly f . evalPoly g
 composePoly :: Num a => Poly a -> Poly a -> Poly a
-composePoly (polyCoeffs LE -> cs) g = foldr mul zero cs
+composePoly (polyCoeffs LE -> cs) (polyCoeffs LE -> ds) = poly LE (foldr mul [] cs)
     where
         -- Implementation note: this is a hand-inlining of the following
         -- (with the 'Num' instance in "Math.Polynomial.NumInstance"):
         -- > composePoly f g = evalPoly (fmap constPoly f) g
-        mul c acc = addPoly (constPoly c) (multPoly acc g)
+        mul c acc = zipSum [c] (multPolyLE acc ds)
 
 -- |Evaluate a polynomial at a point or, equivalently, convert a polynomial
 -- to the function it represents.  For example, @evalPoly 'x' = 'id'@ and 
