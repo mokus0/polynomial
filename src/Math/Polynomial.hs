@@ -70,21 +70,13 @@ sumPolys ps = poly LE (foldl1 zipSum (map (polyCoeffs LE) ps))
 multPoly :: Num a => Poly a -> Poly a -> Poly a
 multPoly (polyCoeffs LE -> xs) (polyCoeffs LE -> ys) = poly LE (multPolyLE xs ys)
 
--- |(Internal): multiply polynomials in LE order.  O(length xs * length ys), I think.
+-- |(Internal): multiply polynomials in LE order.  O(length xs * length ys).
 multPolyLE :: Num a => [a] -> [a] -> [a]
-multPolyLE [] _  = []
-multPolyLE _  [] = []
-multPolyLE xs ys = multX ys
+multPolyLE _  []     = []
+multPolyLE xs (y:ys) = foldr mul [] xs
     where
-        zipSumShifted as     [] = as
-        zipSumShifted []     bs = 0 : bs
-        zipSumShifted (a:as) bs = a : zipSum as bs
-        
-        multX (0:ys) = 0:multX ys
-        multX ys = foldr zipSumShifted []
-            [ if x == 0 then [] else map (x *) ys
-            | x <- xs
-            ]
+        mul 0 bs = 0 : bs
+        mul x bs = (x*y) : zipSum (map (x*) ys) bs
 
 -- |Given a polynomial 'f' and exponent 'n', computes the polynomial 'g'
 -- such that:
