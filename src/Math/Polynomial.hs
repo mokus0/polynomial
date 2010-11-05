@@ -154,6 +154,9 @@ addScalarLE a (b:bs) = (a + b) : bs
 -- to the function it represents.  For example, @evalPoly 'x' = 'id'@ and 
 -- @evalPoly ('constPoly' k) = 'const' k.@
 evalPoly :: Num a => Poly a -> a -> a
+evalPoly (polyCoeffs LE -> cs) 0
+    | null cs   = 0
+    | otherwise = head cs
 evalPoly (polyCoeffs LE -> cs) x = foldr mul 0 cs
     where
         mul c acc = c + acc * x
