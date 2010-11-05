@@ -58,14 +58,9 @@ evalBernsteinSeries cs = head . last . deCasteljau cs
 -- |de Casteljau's algorithm, returning the whole tableau.  Used both for
 -- evaluating and splitting polynomials in Bernstein form.
 deCasteljau :: Num a => [a] -> a -> [[a]]
-deCasteljau cs t = takeWhile (not.null) table
-    where
-        table = cs : 
-            [ [ b_i * (1-t) + b_ip1 * t
-              | b_i:b_ip1:_ <- tails row
-              ]
-            | row <- table
-            ]
+deCasteljau [] _ = []
+deCasteljau cs t = cs : deCasteljau (zipWith (interp t) cs (tail cs)) t
+    where interp t x0 x1 = (1-t)*x0 + t*x1
 
 -- |Given a polynomial in Bernstein form (that is, a list of coefficients
 -- for a basis set from 'bernstein', such as is returned by 'bernsteinFit')
