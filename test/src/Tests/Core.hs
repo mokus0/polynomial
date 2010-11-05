@@ -1,5 +1,5 @@
 {-# LANGUAGE ExtendedDefaultRules, TypeSynonymInstances, TypeFamilies #-}
-module PolynomialTests where
+module Tests.Core (coreTests) where
 
 import Control.Applicative
 import Data.List
@@ -38,7 +38,7 @@ rev LE = BE
 sep [] = []
 sep rts = nub rts : sep (rts \\ nub rts)
 
-tests = 
+coreTests = 
     [ testGroup "constants"
         [ testGroup "zero"
             [ testCase "polyIsZero zero" (assert (polyIsZero zero))

@@ -1,11 +1,11 @@
 #!/usr/bin/env runhaskell
 module Main where
 
-import qualified BernsteinTests
-import qualified PolynomialTests
+import Tests.Bernstein
+import Tests.Core
 import Test.Framework (defaultMain, testGroup)
 
 main = defaultMain 
-    [ testGroup "Math.Polynomial" PolynomialTests.tests
-    , testGroup "Math.Polynomial.Bernstein" BernsteinTests.tests
+    [ testGroup "Math.Polynomial"           coreTests
+    , testGroup "Math.Polynomial.Bernstein" bernsteinTests
     ]

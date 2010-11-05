@@ -1,5 +1,5 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
-module BernsteinTests where
+module Tests.Bernstein (bernsteinTests) where
 
 import Math.Polynomial
 import Math.Polynomial.Bernstein
@@ -9,7 +9,7 @@ import Test.QuickCheck
 
 default (Integer, Rational)
 
-tests =
+bernsteinTests =
     [ testGroup "bernstein"     bernstein_tests
     , testGroup "evalBernstein" evalBernstein_tests
     ]
