@@ -220,7 +220,7 @@ polyIntegral (polyCoeffs LE -> cs) = poly LE $ 0 :
     | n <- iterate (1+) 1
     ]
 
--- |Separate a polynomial into a set of factors none of which have
+-- |Separate a nonzero polynomial into a set of factors none of which have
 -- multiple roots, and the product of which is the original polynomial.
 -- Note that if division is not exact, it may fail to separate roots.  
 -- Rational coefficients is a good idea.
