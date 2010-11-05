@@ -41,6 +41,14 @@ coreTests = evalData `seq`
             , bgroup "-999" (unaryOpTests (rnf . flip evalPoly (-999)))
             , bgroup "2^80" (unaryOpTests (rnf . flip evalPoly (2^80)))
             ]
+    , bgroup "evalPolyDeriv"
+            [ bgroup "0"    (unaryOpTests (rnf . flip evalPolyDeriv 0))
+            , bgroup "7"    (unaryOpTests (rnf . flip evalPolyDeriv 7))
+            ]
+    , bgroup "evalPolyDerivs"
+            [ bgroup "0"    (unaryOpTests (rnf . flip evalPolyDerivs 0))
+            , bgroup "7"    (unaryOpTests (rnf . flip evalPolyDerivs 7))
+            ]
     , bgroup "negatePoly"    (unaryOpTests  (rnf . negatePoly))
     , bgroup "polyDeriv"     (unaryOpTests  (rnf . polyDeriv))
     , bgroup "polyIntegral"  (unaryOpTestsF (rnf . polyIntegral))
