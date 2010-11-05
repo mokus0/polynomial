@@ -7,7 +7,7 @@ import Data.List
 -- |The Chebyshev polynomials of the first kind with 'Integer' coefficients.
 ts :: [Poly Integer]
 ts = poly LE [1] : 
-    [ addPoly (poly LE [0, 1]    `multPoly` t_n)
+    [ addPoly (x                `multPoly` t_n)
               (poly LE [-1,0,1] `multPoly` u_n)
     | t_n <- ts
     | u_n <- poly LE [0] : us
@@ -16,18 +16,20 @@ ts = poly LE [1] :
 -- The Chebyshev polynomials of the second kind with 'Integer' coefficients.
 us :: [Poly Integer]
 us = 
-    [ addPoly t_n (multPoly u_n (poly LE [0,1]))
+    [ addPoly t_n (multPoly x u_n)
     | t_n <- ts
     | u_n <- poly LE [0] : us
     ]
 
 -- |Compute the coefficients of the n'th Chebyshev polynomial of the first kind.
 t :: Num a => Int -> Poly a
-t n = poly LE . map fromInteger . polyCoeffs LE $ ts !! n
+t n | n >= 0    = poly LE . map fromInteger . polyCoeffs LE $ ts !! n
+    | otherwise = error "t: negative index"
 
 -- |Compute the coefficients of the n'th Chebyshev polynomial of the second kind.
 u :: Num a => Int -> Poly a
-u n = poly LE . map fromInteger . polyCoeffs LE $ us !! n
+u n | n >= 0    = poly LE . map fromInteger . polyCoeffs LE $ us !! n
+    | otherwise = error "u: negative index"
 
 -- |Evaluate the n'th Chebyshev polynomial of the first kind at a point X.  
 -- Both more efficient and more numerically stable than computing the 
