@@ -1,4 +1,4 @@
-{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE ParallelListComp, BangPatterns #-}
 module Math.Polynomial.Chebyshev where
 
 import Math.Polynomial
@@ -35,7 +35,7 @@ u n | n >= 0    = poly LE . map fromInteger . polyCoeffs LE $ us !! n
 -- Both more efficient and more numerically stable than computing the 
 -- coefficients and evaluating the polynomial.
 evalT :: Num a => Int -> a -> a
-evalT n x = evalTs x !! n
+evalT n x = fst (evalTU n x)
 
 -- |Evaluate all the Chebyshev polynomials of the first kind at a point X.
 evalTs :: Num a => a -> [a]
@@ -45,7 +45,7 @@ evalTs = fst . evalTsUs
 -- Both more efficient and more numerically stable than computing the 
 -- coefficients and evaluating the polynomial.
 evalU :: Num a => Int -> a -> a
-evalU n x = evalUs x !! n
+evalU n x = snd (evalTU n x)
 
 -- |Evaluate all the Chebyshev polynomials of the second kind at a point X.
 evalUs :: Num a => a -> [a]
@@ -53,8 +53,13 @@ evalUs = snd . evalTsUs
 
 -- |Evaluate the n'th Chebyshev polynomials of both kinds at a point X.
 evalTU :: Num a => Int -> a -> (a,a)
-evalTU n x = (ts!!n, us!!n)
-    where (ts,us) = evalTsUs x
+evalTU n x = go n 1 0
+    where
+        go !0 !t_n !u_n = (t_n, u_n)
+        go !n !t_n !u_n = go (n-1) t_np1 u_np1
+            where
+                t_np1 = x * t_n - (1-x*x)*u_n
+                u_np1 = x * u_n + t_n
 
 -- |Evaluate all the Chebyshev polynomials of both kinds at a point X.
 evalTsUs :: Num a => a -> ([a], [a])
