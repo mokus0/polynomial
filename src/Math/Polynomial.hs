@@ -228,6 +228,7 @@ polyIntegral (polyCoeffs LE -> cs) = poly LE $ 0 :
 -- Useful when applicable as a way to simplify root-finding problems.
 separateRoots :: Fractional a => Poly a -> [Poly a]
 separateRoots p
+    | polyIsZero q  = error "separateRoots: zero polynomial"
     | polyIsOne q   = [p]
     | otherwise     = p `quotPoly` q : separateRoots q
     where
