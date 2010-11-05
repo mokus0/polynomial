@@ -18,6 +18,7 @@ Executable polynomial-bench
   hs-source-dirs:       src
   main-is:              Bench.hs
   build-depends:        base >= 3 && <5, 
+                        containers,
                         criterion,
                         deepseq,
                         polynomial,
