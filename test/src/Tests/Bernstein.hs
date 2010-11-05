@@ -6,6 +6,7 @@ import Math.Polynomial.Bernstein
 import Test.Framework (testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
+import TestUtils
 
 default (Integer, Rational)
 
@@ -79,12 +80,6 @@ prop_evalBernstein_symmetry  (NonNegative a) (NonNegative b) x =
         v = min a b
      in evalBernstein n (n-v) x
      == evalBernstein n    v  (1-x)
-
--- arbitrary function mapping the real line to the unit interval
-onUnitInterval x
-    | x < 0     = onUnitInterval (negate x)
-    | x > 1     = recip x
-    | otherwise = x
 
 evalBernstein_sign 0 0 _ = 1
 evalBernstein_sign n v 0 = delta v 0
