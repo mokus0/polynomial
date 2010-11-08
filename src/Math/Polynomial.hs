@@ -129,6 +129,14 @@ remPoly (polyCoeffs BE -> u) (polyCoeffs BE -> v)
 -- |@composePoly f g@ constructs the polynomial 'h' such that:
 -- 
 -- > evalPoly h = evalPoly f . evalPoly g
+-- 
+-- This is a very expensive operation and, in general, returns a polynomial 
+-- that is quite a bit more expensive to evaluate than @f@ and @g@ together
+-- (because it is of a much higher order than either).  Unless your 
+-- polynomials are quite small or you are quite certain you need the
+-- coefficients of the composed polynomial, it is recommended that you 
+-- simply evaluate @f@ and @g@ and explicitly compose the resulting 
+-- functions.  This will usually be much more efficient.
 composePoly :: Num a => Poly a -> Poly a -> Poly a
 composePoly (polyCoeffs LE -> cs) (polyCoeffs LE -> ds) = poly LE (foldr mul [] cs)
     where
