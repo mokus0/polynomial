@@ -22,6 +22,7 @@ chebyshevTests =
 
 ts_tests =
     [ testProperty "recurrence" prop_ts_recurrence
+    , testProperty "parity"     prop_ts_parity
     ]
 
 prop_ts_recurrence (NonNegative 0) = ts !! 0 == one
@@ -31,8 +32,14 @@ prop_ts_recurrence (NonNegative a) =
      in (multPoly (scalePoly 2 x) (ts !! n))
      == addPoly (ts !! (n-1)) (ts !! (n+1))
 
+prop_ts_parity (NonNegative n)
+    | even n    = composePoly t (negatePoly x) == t
+    | otherwise = composePoly t (negatePoly x) == negatePoly t
+        where t = ts !! (n `mod` 1200)
+
 us_tests =
     [ testProperty "recurrence" prop_us_recurrence
+    , testProperty "parity"     prop_us_parity
     ]
 
 prop_us_recurrence (NonNegative 0) = us !! 0 == one
@@ -41,6 +48,11 @@ prop_us_recurrence (NonNegative a) =
     let n = 1 + a `mod` 1200
      in (multPoly (scalePoly 2 x) (us !! n))
      == addPoly (us !! (n-1)) (us !! (n+1))
+
+prop_us_parity (NonNegative n)
+    | even n    = composePoly u (negatePoly x) == u
+    | otherwise = composePoly u (negatePoly x) == negatePoly u
+        where u = us !! (n `mod` 1200)
 
 prop_pell's_eqn (Positive a) =
     let n = 1 +  a `mod` 800
