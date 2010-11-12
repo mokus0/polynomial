@@ -7,7 +7,7 @@ import Test.Framework (testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
 import TestUtils
-import Text.Show.Functions
+import Text.Show.Functions ()
 
 default (Integer, Rational)
 
@@ -125,7 +125,7 @@ chebyshevFit_tests =
     , testProperty "sane (Float)"    (prop_chebyshevFit_sane (\n -> 1e-4  * n^2 :: Float))
     ]
 
-prop_chebyshevFit_sane epsF (NonNegative n') f = all (<= eps) [relErr (f x) (f' x) | x <- tRoots n, let fx = f x; f'x = f' x]
+prop_chebyshevFit_sane epsF (NonNegative n') f = all (<= eps) [relErr (f x) (f' x) | x <- tRoots n]
     where 
         eps = epsF (fromIntegral n)
         n = n' `mod` 500

@@ -1,7 +1,6 @@
-{-# LANGUAGE ExtendedDefaultRules, TypeSynonymInstances, TypeFamilies #-}
+{-# LANGUAGE ExtendedDefaultRules #-}
 module Tests.Core (coreTests) where
 
-import Control.Applicative
 import Data.List
 import Data.VectorSpace
 import Math.Polynomial
@@ -11,33 +10,11 @@ import Test.Framework.Providers.HUnit (testCase)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit
 import Test.QuickCheck
+import TestUtils
 
 -- Use exact math everywhere; we're not testing stability or speed,
 -- just mathematical soundness.
 default (Integer, Rational)
-
-instance Arbitrary Endianness where
-    arbitrary = elements [BE, LE]
-
-instance (Num a, Arbitrary a) => Arbitrary (Poly a) where
-    arbitrary = poly <$> arbitrary <*> arbitrary
-
-instance AdditiveGroup Rational where
-    zeroV = 0
-    (^+^) = (+)
-    negateV = negate
-instance VectorSpace Rational where
-    type Scalar Rational = Rational
-    (*^) = (*)
-
-order p = length (polyCoeffs LE p)
-
-rev BE = LE
-rev LE = BE
-
-sep [] = []
-sep rts = uniq : sep (rts \\ uniq)
-    where uniq = nub rts
 
 coreTests = 
     [ testGroup "constants"
