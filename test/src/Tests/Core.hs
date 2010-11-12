@@ -259,6 +259,8 @@ coreTests =
             assert (polyDeriv zero == zero)
         , testCase "one" $ do
             assert (polyDeriv one == zero)
+        , testProperty "constPoly" $ \k -> 
+            polyDeriv (constPoly k) == zero
         , testCase "x" $ do
             assert (polyDeriv x == one)
         , testProperty "chain rule" $ \p q ->
@@ -267,6 +269,7 @@ coreTests =
         ]
     , testGroup "polyIntegral"
         [ testProperty "sane" $ \p -> polyDeriv (polyIntegral p) == p
+        , testProperty "constant factor" $ \p -> evalPoly (polyIntegral p) 0 == 0
         ]
     , testGroup "separateRoots"
         [ testProperty "sane" $ \(NonEmpty rts) ->
