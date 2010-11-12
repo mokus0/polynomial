@@ -7,6 +7,7 @@ import Test.Framework (testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck
 import TestUtils
+import Text.Show.Functions
 
 default (Integer, Rational)
 
@@ -18,6 +19,10 @@ chebyshevTests =
     , testProperty "u n == us !! n" $ \(NonNegative a) -> let n = a `mod` 1000 in u n == us !! n
     , testGroup "evalT" evalT_tests
     , testGroup "evalU" evalU_tests
+    , testGroup "tRoots" tRoots_tests
+    , testGroup "tExtrema" tExtrema_tests
+    , testGroup "chebyshevFit" chebyshevFit_tests
+    , testGroup "evalChebyshevSeries" evalChebyshevSeries_tests
     ]
 
 ts_tests =
@@ -86,4 +91,52 @@ evalU_tests =
 prop_evalU_sane (NonNegative a) x =
     let n = a `mod` 1000
      in evalT n x == evalPoly (t n) x
+
+
+tRoots_tests =
+    [ testProperty "distinct (Float)"  (prop_tRoots_distinct (undefined :: Float))
+    , testProperty "distinct (Double)" (prop_tRoots_distinct (undefined :: Double))
+    -- I could test that the roots are roots, but numerically they aren't,
+    -- and with the insanely large derivatives at some of the roots, I don't
+    -- expect 'evalT n' to even be particularly close to zero at many of the
+    -- "roots".
+    ]
+
+prop_tRoots_distinct w (NonNegative n') = distinct (tRoots n `asTypeOf` [w])
+    where n = n' `mod` 1200
+
+tExtrema_tests =
+    [ testProperty "distinct (Float)"   (prop_tExtrema_distinct (undefined :: Float))
+    , testProperty "distinct (Double)"  (prop_tExtrema_distinct (undefined :: Double))
+    , testProperty "near 1 (Float)"     (prop_tExtrema_near_1 (\n -> n * 1e-7 :: Float))
+    , testProperty "near 1 (Double)"    (prop_tExtrema_near_1 (\n -> n * 1e-16 :: Double))
+    ]
+
+prop_tExtrema_distinct w (NonNegative n') = distinct (tExtrema n `asTypeOf` [w])
+    where n = n' `mod` 1200
+
+prop_tExtrema_near_1 eps (NonNegative n') = all (near1.abs.evalT n) (tExtrema n)
+    where 
+        n = n' `mod` 1200
+        near1 y = abs (y-1) <= eps (fromIntegral n)
+
+chebyshevFit_tests =
+    [ testProperty "sane (Double)"   (prop_chebyshevFit_sane (\n -> 1e-12 * n^2 :: Double))
+    , testProperty "sane (Float)"    (prop_chebyshevFit_sane (\n -> 1e-4  * n^2 :: Float))
+    ]
+
+prop_chebyshevFit_sane epsF (NonNegative n') f = all (<= eps) [relErr (f x) (f' x) | x <- tRoots n, let fx = f x; f'x = f' x]
+    where 
+        eps = epsF (fromIntegral n)
+        n = n' `mod` 500
+        cs = chebyshevFit n f
+        f' = evalChebyshevSeries cs
+
+evalChebyshevSeries_tests =
+    [ testProperty "sane"   prop_evalChebyshevSeries_sane
+    ]
+
+prop_evalChebyshevSeries_sane cs x 
+    =  evalChebyshevSeries cs x 
+    == sum (zipWith (*) cs (evalTs x))
 
