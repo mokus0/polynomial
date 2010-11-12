@@ -58,6 +58,10 @@ coreTests =
             [ testProperty "evalPoly x t == t" $ \t ->
                 evalPoly x t == t
             ]
+        , testGroup "constPoly"
+            [ testProperty "evalPoly (constPoly x) == const x" $ \a b -> 
+                evalPoly (constPoly a) b == const a b
+            ]
         ]
     , testGroup "constructors"
         [ testProperty "polyCoeffs LE . poly LE" $ \cs ->
@@ -132,8 +136,22 @@ coreTests =
         [ testProperty "sane" $ \p -> polyIsZero (addPoly p (negatePoly p))
         ]
     , testGroup "composePoly"
-        [ testProperty "sane" $ \f g x -> evalPoly (composePoly f g) x 
-                                       == evalPoly f (evalPoly g x)
+        [ testProperty "sane" $ \f g x -> 
+            order f * order g <= 750 ==>
+                    evalPoly (composePoly f g) x 
+                 == evalPoly f (evalPoly g x)
+        , testProperty "associative" $ \f g h -> 
+            order f * order g * order h <= 1000 ==>
+                    composePoly f (composePoly g h)
+                 == composePoly (composePoly f g) h
+        , testProperty "left  cancel" $ \p k ->
+            composePoly p (constPoly k) == constPoly (evalPoly p k)
+        , testProperty "right cancel" $ \k p ->
+            composePoly (constPoly k) p == constPoly k
+        , testProperty "left  identity" $ \p ->
+            composePoly p x == p
+        , testProperty "right identity" $ \p ->
+            composePoly x p == p
         ]
     , testGroup "scalePoly"
         [ testProperty "sane" $ \s p x ->
