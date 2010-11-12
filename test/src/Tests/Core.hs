@@ -198,7 +198,7 @@ coreTests =
     , testGroup "contractPoly"
         [ testProperty "sane" $ \p a -> 
             case contractPoly p a of
-                (q, r) -> addPoly (multPoly q (poly BE [1,-a])) (poly BE [r]) == p
+                (q, r) -> addPoly (multPoly q (poly BE [1,-a])) (constPoly r) == p
         , testProperty "root" $ \p a ->
             case contractPoly p a of
                 (q, r) -> evalPoly (addPoly p (poly BE [-r])) a == 0
