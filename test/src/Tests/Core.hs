@@ -187,7 +187,8 @@ coreTests =
     , testGroup "quotRemPoly"
         [ testProperty "sane" $ \a b -> 
             not (polyIsZero b) ==> case quotRemPoly a b of
-                (q, r) -> addPoly (multPoly q b) r == a
+                (q, r) -> order r < order b 
+                       && addPoly (multPoly q b) r == a
         ]
     , testGroup "quotPoly"
         [ testProperty "sane" $ \a b -> 
