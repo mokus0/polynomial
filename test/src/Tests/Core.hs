@@ -201,11 +201,12 @@ coreTests =
             remPoly a b == snd (quotRemPoly a b)
         ]
     , testGroup "evalPolyDeriv"
-        [ testProperty "zero" $ \t -> evalPolyDeriv zero t == (0,0)
-        , testProperty "one"  $ \t -> evalPolyDeriv one  t == (1,0)
-        , testProperty "x"    $ \t -> evalPolyDeriv x    t == (t,1)
+        [ testProperty "zero"       $ \t   -> evalPolyDeriv zero          t == (0,0)
+        , testProperty "one"        $ \t   -> evalPolyDeriv one           t == (1,0)
+        , testProperty "constPoly"  $ \t k -> evalPolyDeriv (constPoly k) t == (k,0)
+        , testProperty "x"          $ \t   -> evalPolyDeriv x             t == (t,1)
         , testProperty "chain rule" $ \p q x ->
-            snd (evalPolyDeriv (multPoly p q) x)
+               snd (evalPolyDeriv (multPoly p q) x)
             == snd (evalPolyDeriv p x) * evalPoly q x + snd (evalPolyDeriv q x) * evalPoly p x
         , testProperty "sane" $ \p x ->
             evalPolyDeriv p x == (evalPoly p x, evalPoly (polyDeriv p) x)
