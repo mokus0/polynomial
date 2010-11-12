@@ -1,0 +1,21 @@
+Notes to myself
+===============
+
+I experimented a bit with refining the roots in 'Math.Polynomial.Chebyshev.tRoots', but I'm not satisfied yet.  For one thing, this is a major brute-force approach... Brent's method is really heavy duty to be calling potentially thousands of times.  For another thing, I don't like adding an Ord or RealFloat context, which means I'll need to either improve on the root finder interface or implement something inline.  I'm inclined to punt on this for now and eventually take the time to implement 'evalTDeriv' and an inline Newton-Raphson method, and parameterize this over a convergence test or something.  Finally, I'm not entirely sure this should even be necessary.  I'm inclined to believe that the existing tRoots is good enough by itself - the roots it returns are never "improved" by more than a few ulps anyway.  But then again, with the insanely large derivatives at the outer roots, a few ulps can have a pretty huge effect.
+> tRoots :: RealFloat a => Int -> [a]
+> tRoots   n = improveRoots (-1) [cos (pi * ((fromIntegral k + 0.5) / fromIntegral n)) | k <- [0..n-1]] 1
+>     where
+>         -- moving bracket window; every root must be strictly between
+>         -- the estimates of the previous and next roots.
+>         improveRoots x0 [] xN = []
+>         improveRoots x0 [x1] xN = [improveRoot x0 x1 xN]
+>         improveRoots x0 (x1:xs@(x2:_)) xN = improveRoot x0 x1 x2 : improveRoots x1 xs xN
+>         
+>         -- search for a root in a small interval covering x
+>         improveRoot lo x hi = case brent (evalT n) x0 x1 0 of
+>             Right rt        -> rt
+>             Left bestGuess  -> estimateRoot bestGuess
+>             where 
+>                 r = 0.75 * min (abs (x-lo)) (abs (hi-x))
+>                 x0 = x - r; x1 = x + r
+
