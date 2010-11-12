@@ -36,7 +36,8 @@ rev BE = LE
 rev LE = BE
 
 sep [] = []
-sep rts = nub rts : sep (rts \\ nub rts)
+sep rts = uniq : sep (rts \\ uniq)
+    where uniq = nub rts
 
 coreTests = 
     [ testGroup "constants"
