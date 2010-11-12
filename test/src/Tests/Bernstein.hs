@@ -59,7 +59,7 @@ evalBernstein_tests =
 prop_evalBernstein_sane (NonNegative a) (NonNegative b) x =
     let n = max a b
         v = min a b
-     in n <= 600 ==>
+     in n <= bernsteinLimit ==>
             evalPoly (fmap toRational (bernstein !! n !! v)) x
             == evalBernstein n v x
 
