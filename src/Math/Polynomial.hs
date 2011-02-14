@@ -2,7 +2,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Math.Polynomial
     ( Endianness(..)
-    , Poly, poly, polyCoeffs, polyIsZero, polyIsOne
+    , Poly, poly, polyDegree
+    , polyCoeffs, polyIsZero, polyIsOne
     , zero, one, constPoly, x
     , scalePoly, negatePoly
     , composePoly

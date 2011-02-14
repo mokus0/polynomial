@@ -2,7 +2,7 @@
 -- |Low-level interface for the 'Poly' type.
 module Math.Polynomial.Type 
     ( Endianness(..)
-    , Poly, poly, polyCoeffs
+    , Poly, poly, polyDegree, polyCoeffs
     , trim, rawPoly, rawPolyCoeffs
     , polyIsZero, polyIsOne
     ) where
@@ -46,6 +46,11 @@ poly end cs = trim (0==) (rawPoly end cs)
 -- coefficient list)
 rawPoly :: Endianness -> [a] -> Poly a
 rawPoly end cs = Poly end False cs 
+
+-- |Get the degree of a a 'Poly' (the highest exponent with nonzero coefficient)
+polyDegree :: Num a => Poly a -> Int
+polyDegree p = degree (trim (0==) p)
+    where degree (Poly _ _ cs) = length cs - 1
 
 -- |Get the coefficients of a a 'Poly' in the specified order.
 polyCoeffs :: Num a => Endianness -> Poly a -> [a]

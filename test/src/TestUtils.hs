@@ -21,8 +21,6 @@ instance VectorSpace Rational where
     type Scalar Rational = Rational
     (*^) = (*)
 
-order p = length (polyCoeffs LE p)
-
 rev BE = LE
 rev LE = BE
 
