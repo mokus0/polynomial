@@ -1,5 +1,5 @@
 name:                   polynomial
-version:                0.6.1
+version:                0.6.2
 stability:              provisional
 
 cabal-version:          >= 1.6
@@ -26,6 +26,7 @@ Library
   exposed-modules:      Math.Polynomial
                         Math.Polynomial.Bernstein
                         Math.Polynomial.Chebyshev
+                        Math.Polynomial.Hermite
                         Math.Polynomial.Interpolation
                         Math.Polynomial.Lagrange
                         Math.Polynomial.Legendre
