@@ -12,7 +12,7 @@ module Math.Polynomial
     , evalPoly, evalPolyDeriv, evalPolyDerivs
     , contractPoly
     , gcdPoly, separateRoots
-    , polyDeriv, polyIntegral
+    , polyDeriv, polyDerivs, polyIntegral
     ) where
 
 import Math.Polynomial.Type
@@ -220,6 +220,12 @@ polyDeriv (polyCoeffs LE -> cs) = poly LE
     | c <- drop 1 cs
     | n <- iterate (1+) 1
     ]
+
+-- |Compute all nonzero derivatives of a polynomial, starting with its 
+-- \"zero'th derivative\", the original polynomial itself.
+polyDerivs :: Num a => Poly a -> [Poly a]
+polyDerivs p = take (1 + polyDegree p) (iterate polyDeriv p)
+
 
 -- |Compute the definite integral (from 0 to x) of a polynomial.
 polyIntegral :: Fractional a => Poly a -> Poly a
