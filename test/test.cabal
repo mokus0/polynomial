@@ -25,4 +25,5 @@ Executable polynomial-tests
                         test-framework, 
                         test-framework-hunit,
                         test-framework-quickcheck2,
+                        vector,
                         vector-space

@@ -1,10 +1,35 @@
-{-# LANGUAGE ViewPatterns, TypeFamilies #-}
+{-# LANGUAGE ViewPatterns, TypeFamilies, GADTs #-}
 -- |Low-level interface for the 'Poly' type.
 module Math.Polynomial.Type 
     ( Endianness(..)
-    , Poly, poly, polyDegree, polyCoeffs
-    , trim, rawPoly, rawPolyCoeffs
-    , polyIsZero, polyIsOne
+    , Poly
+    
+    , zero
+    
+    , poly, polyN
+    , unboxedPoly, unboxedPolyN
+    
+    , mapPoly
+    
+    , unboxPoly
+    
+    , rawListPoly
+    , rawVectorPoly
+    , rawUVectorPoly
+    , trim
+    
+    , polyIsZero
+    , polyIsOne
+    
+    , polyCoeffs
+    , rawCoeffsOrder
+    , rawPolyCoeffs
+    , untrimmedPolyCoeffs
+    
+    , polyDegree
+    , rawPolyDegree
+    , rawPolyLength
+    
     ) where
 
 import Control.DeepSeq
@@ -12,65 +37,8 @@ import Control.DeepSeq
 import Data.AdditiveGroup
 import Data.VectorSpace
 import Data.List.ZipSum
-
-dropEnd :: (a -> Bool) -> [a] -> [a]
--- dropEnd p = reverse . dropWhile p . reverse
-dropEnd p = go id
-    where
-        go t (x:xs)
-            -- if p x, stash x (will only be used if 'not (any p xs)')
-            | p x       =        go (t.(x:))  xs
-            -- otherwise insert x and all stashed values in output and reset the stash
-            | otherwise = t (x : go  id       xs)
-        -- at end of string discard the stash
-        go _ [] = []
-
--- |Trim zeroes from a polynomial (given a predicate for identifying zero).
--- In particular, drops zeroes from the highest-order coefficients, so that
--- @0x^n + 0x^(n-1) + 0x^(n-2) + ... + ax^k + ...@, @a /= 0@
--- is normalized to @ax^k + ...@.  
--- 
--- The 'Eq' instance for 'Poly' and all the standard constructors / destructors
--- are defined using @trim (0==)@.
-trim :: (a -> Bool) -> Poly a -> Poly a
-trim      _ p@(Poly _ True _) = p
-trim isZero   (Poly LE _ cs) = Poly LE True (dropEnd   isZero cs)
-trim isZero   (Poly BE _ cs) = Poly BE True (dropWhile isZero cs)
-
--- |Make a 'Poly' from a list of coefficients using the specified coefficient order.
-poly :: Num a => Endianness -> [a] -> Poly a
-poly end cs = trim (0==) (rawPoly end cs)
-
--- |Make a 'Poly' from a list of coefficients using the specified coefficient order,
--- without the 'Num' context (and therefore without trimming zeroes from the 
--- coefficient list)
-rawPoly :: Endianness -> [a] -> Poly a
-rawPoly end cs = Poly end False cs 
-
--- |Get the degree of a a 'Poly' (the highest exponent with nonzero coefficient)
-polyDegree :: Num a => Poly a -> Int
-polyDegree p = degree (trim (0==) p)
-    where degree (Poly _ _ cs) = length cs - 1
-
--- |Get the coefficients of a a 'Poly' in the specified order.
-polyCoeffs :: Num a => Endianness -> Poly a -> [a]
-polyCoeffs end p = rawPolyCoeffs end (trim (0==) p)
-
--- |Get the coefficients of a a 'Poly' in the specified order, without the 'Num'
--- constraint (and therefore without trimming zeroes).
--- 
--- This function does not respect the 'Eq' instance:
---   @x == y@ =/=> @rawPolyCoeffs e x == rawPolyCoeffs e y@.
-rawPolyCoeffs :: Endianness -> Poly a -> [a]
-rawPolyCoeffs end (Poly e _ cs)
-    | e == end  = cs
-    | otherwise = reverse cs
-
-polyIsZero :: Num a => Poly a -> Bool
-polyIsZero = null . coeffs . trim (0==)
-
-polyIsOne :: Num a => Poly a -> Bool
-polyIsOne = ([1]==) . coeffs . trim (0==)
+import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as UV
 
 data Endianness 
     = BE 
@@ -82,31 +50,47 @@ data Endianness
 instance NFData Endianness where
     rnf x = seq x ()
 
-data Poly a = Poly 
-    { endianness :: !Endianness
-    , _trimmed   :: !Bool
-    , coeffs     :: ![a]
-    }
+data Poly a where
+    ListPoly ::
+        { trimmed    :: !Bool
+        , endianness :: !Endianness
+        , listCoeffs :: ![a]
+        } -> Poly a
+    VectorPoly ::
+        { trimmed    :: !Bool
+        , endianness :: !Endianness
+        , vCoeffs    :: !(V.Vector a)
+        } -> Poly a
+    UVectorPoly :: UV.Unbox a => 
+        { trimmed    :: !Bool
+        , endianness :: !Endianness
+        , uvCoeffs   :: !(UV.Vector a)
+        } -> Poly a
 
 instance NFData a => NFData (Poly a) where
-    rnf (Poly e t c) = rnf e `seq` rnf t `seq` rnf c
+    rnf (ListPoly    _ _ c) = rnf c
+    rnf (VectorPoly  _ _ c) = V.foldr' seq () c
+    rnf (UVectorPoly _ _ _) = ()
 
-instance Num a => Show (Poly a) where
-    showsPrec p (trim (0==) -> Poly end _ cs) 
+instance Show a => Show (Poly a) where
+    showsPrec p f
         = showParen (p > 10) 
             ( showString "poly "
-            . showsPrec 11 end
+            . showsPrec 11 (rawCoeffsOrder f)
             . showChar ' '
-            . showsPrec 11 cs
+            . showsPrec 11 (rawPolyCoeffs f)
             )
 
+-- TODO: specialize for case where one is a list and other is a vector;
+--  use native order of the list
 instance (Num a, Eq a) => Eq (Poly a) where
     p == q  
-        | endianness p == endianness q
-        = coeffs (trim (0==) p) == coeffs (trim (0==) q)
+        | rawCoeffsOrder p == rawCoeffsOrder q
+        =  rawPolyCoeffs (trim (0==) p) 
+        == rawPolyCoeffs (trim (0==) q)
         | otherwise 
-        = polyCoeffs BE p == polyCoeffs BE q
-        
+        =  polyCoeffs LE p
+        == polyCoeffs LE q
 
 -- -- Ord would be nice for some purposes, but it really just doesn't
 -- -- make sense (there is no natural order that is much better than any
@@ -121,14 +105,130 @@ instance (Num a, Eq a) => Eq (Poly a) where
 --             qCoeffs = polyCoeffs BE q
 
 instance Functor Poly where
-    fmap f (Poly end _ cs) = Poly end False (map f cs)
+    fmap f (ListPoly    _ end cs) = ListPoly   False end (map f cs)
+    fmap f (VectorPoly  _ end cs) = VectorPoly False end (V.map f cs)
+    -- TODO: make sure this gets fused
+    fmap f (UVectorPoly _ end cs) = VectorPoly False end (V.fromListN n . map f $ UV.toList cs)
+        where n = UV.length cs
+
+-- |Like fmap, but able to preserve unboxedness
+mapPoly :: (a -> a) -> Poly a -> Poly a
+mapPoly f (ListPoly    _ e cs) = ListPoly    False e (   map f cs)
+mapPoly f (VectorPoly  _ e cs) = VectorPoly  False e ( V.map f cs)
+mapPoly f (UVectorPoly _ e cs) = UVectorPoly False e (UV.map f cs)
 
 instance AdditiveGroup a => AdditiveGroup (Poly a) where
-    zeroV = Poly LE True []
-    (rawPolyCoeffs LE ->  a) ^+^ (rawPolyCoeffs LE ->  b) 
-        = Poly LE False (zipSumV a b)
+    zeroV = ListPoly True LE []
+    (untrimmedPolyCoeffs LE ->  a) ^+^ (untrimmedPolyCoeffs LE ->  b) 
+        = ListPoly False LE (zipSumV a b)
     negateV = fmap negateV
 
 instance VectorSpace a => VectorSpace (Poly a) where
     type Scalar (Poly a) = Scalar a
     (*^) s = fmap (s *^)
+
+-- |Trim zeroes from a polynomial (given a predicate for identifying zero).
+-- In particular, drops zeroes from the highest-order coefficients, so that
+-- @0x^n + 0x^(n-1) + 0x^(n-2) + ... + ax^k + ...@, @a /= 0@
+-- is normalized to @ax^k + ...@.  
+-- 
+-- The 'Eq' instance for 'Poly' and all the standard constructors / destructors
+-- are defined using @trim (0==)@.
+trim :: (a -> Bool) -> Poly a -> Poly a
+trim _ p | trimmed p = p
+trim isZero   (ListPoly    _ LE cs) = ListPoly    True LE (dropEnd   isZero cs)
+trim isZero   (ListPoly    _ BE cs) = ListPoly    True BE (dropWhile isZero cs)
+trim isZero   (VectorPoly  _ LE cs) = VectorPoly  True LE (V.reverse . V.dropWhile isZero . V.reverse $ cs)
+trim isZero   (VectorPoly  _ BE cs) = VectorPoly  True BE (V.dropWhile isZero cs)
+trim isZero   (UVectorPoly _ LE cs) = UVectorPoly True LE (UV.reverse . UV.dropWhile isZero . UV.reverse $ cs)
+trim isZero   (UVectorPoly _ BE cs) = UVectorPoly True BE (UV.dropWhile isZero cs)
+
+-- |The polynomial \"0\"
+zero :: Poly a
+zero = ListPoly True LE []
+
+-- |Make a 'Poly' from a list of coefficients using the specified coefficient order.
+poly :: Num a => Endianness -> [a] -> Poly a
+poly end = trim (0==) . rawVectorPoly end . V.fromList
+
+-- |Make a 'Poly' from a list of coefficients, at most 'n' of which are significant.
+polyN :: Num a => Int -> Endianness -> [a] -> Poly a
+polyN n end = trim (0==) . rawVectorPoly end . V.fromListN n
+
+unboxedPoly :: (UV.Unbox a, Num a) => Endianness -> [a] -> Poly a
+unboxedPoly end = trim (0==) . rawUVectorPoly end . UV.fromList
+
+unboxedPolyN :: (UV.Unbox a, Num a) => Int -> Endianness -> [a] -> Poly a
+unboxedPolyN n end = trim (0==) . rawUVectorPoly end . UV.fromListN n
+
+unboxPoly :: UV.Unbox a => Poly a -> Poly a
+unboxPoly (ListPoly   t e cs) = UVectorPoly t e (UV.fromList cs)
+unboxPoly (VectorPoly t e cs) = UVectorPoly t e (UV.fromListN (V.length cs) (V.toList cs))
+unboxPoly p@UVectorPoly{} = p
+
+-- |Make a 'Poly' from a list of coefficients using the specified coefficient order,
+-- without the 'Num' context (and therefore without trimming zeroes from the 
+-- coefficient list)
+rawListPoly :: Endianness -> [a] -> Poly a
+rawListPoly = ListPoly False
+
+rawVectorPoly :: Endianness -> V.Vector a -> Poly a
+rawVectorPoly = VectorPoly False
+
+rawUVectorPoly :: UV.Unbox a => Endianness -> UV.Vector a -> Poly a
+rawUVectorPoly = UVectorPoly False
+
+-- |Get the degree of a a 'Poly' (the highest exponent with nonzero coefficient)
+polyDegree :: Num a => Poly a -> Int
+polyDegree p = rawPolyDegree (trim (0==) p)
+
+rawPolyDegree :: Poly a -> Int
+rawPolyDegree p = rawPolyLength p - 1
+
+rawPolyLength :: Poly a -> Int
+rawPolyLength (ListPoly    _ _ cs) =    length cs
+rawPolyLength (VectorPoly  _ _ cs) =  V.length cs
+rawPolyLength (UVectorPoly _ _ cs) = UV.length cs
+
+
+-- |Get the coefficients of a a 'Poly' in the specified order.
+polyCoeffs :: Num a => Endianness -> Poly a -> [a]
+polyCoeffs end p = untrimmedPolyCoeffs end (trim (0==) p)
+
+polyIsZero :: Num a => Poly a -> Bool
+polyIsZero = null . rawPolyCoeffs . trim (0==)
+
+polyIsOne :: Num a => Poly a -> Bool
+polyIsOne = ([1]==) . rawPolyCoeffs . trim (0==)
+
+rawCoeffsOrder :: Poly a -> Endianness
+rawCoeffsOrder = endianness
+
+rawPolyCoeffs :: Poly a -> [a]
+rawPolyCoeffs p@ListPoly{}         = listCoeffs p
+rawPolyCoeffs p@VectorPoly{}       = V.toList (vCoeffs p)
+rawPolyCoeffs p@UVectorPoly{}      = UV.toList (uvCoeffs p)
+
+-- TODO: make sure (V.toList . V.reverse) gets fused
+untrimmedPolyCoeffs :: Endianness -> Poly a -> [a]
+untrimmedPolyCoeffs e1 (VectorPoly  _ e2 cs)
+    | e1 == e2  = V.toList cs
+    | otherwise = V.toList  (V.reverse cs)
+untrimmedPolyCoeffs e1 (UVectorPoly _ e2 cs)
+    | e1 == e2  = UV.toList cs
+    | otherwise = UV.toList (UV.reverse cs)
+untrimmedPolyCoeffs e1 (ListPoly _ e2 cs)
+    | e1 == e2  = cs
+    | otherwise = reverse cs
+
+dropEnd :: (a -> Bool) -> [a] -> [a]
+-- dropEnd p = reverse . dropWhile p . reverse
+dropEnd p = go id
+    where
+        go t (x:xs)
+            -- if p x, stash x (will only be used if 'not (any p xs)')
+            | p x       =        go (t.(x:))  xs
+            -- otherwise insert x and all stashed values in output and reset the stash
+            | otherwise = t (x : go  id       xs)
+        -- at end of string discard the stash
+        go _ [] = []

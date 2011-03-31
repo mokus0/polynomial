@@ -21,22 +21,18 @@ import Math.Polynomial.Pretty ({- instance -})
 import Data.List
 import Data.List.ZipSum
 
--- |The polynomial \"0\"
-zero :: Num a => Poly a
-zero = poly LE []
-
 -- |The polynomial \"1\"
 one :: Num a => Poly a
 one = constPoly 1
 
 -- |The polynomial (in x) \"x\"
 x :: Num a => Poly a
-x = poly LE [0,1]
+x = polyN 2 LE [0,1]
 
 -- |Given some constant 'k', construct the polynomial whose value is 
 -- constantly 'k'.
 constPoly :: Num a => a -> Poly a
-constPoly x = poly LE [x]
+constPoly x = polyN 1 LE [x]
 
 -- |Given some scalar 's' and a polynomial 'f', computes the polynomial 'g'
 -- such that:
@@ -44,19 +40,20 @@ constPoly x = poly LE [x]
 -- > evalPoly g x = s * evalPoly f x
 scalePoly :: Num a => a -> Poly a -> Poly a
 scalePoly 0 _ = zero
-scalePoly s p = fmap (s*) p
+scalePoly s p = mapPoly (s*) p
 
 -- |Given some polynomial 'f', computes the polynomial 'g' such that:
 -- 
 -- > evalPoly g x = negate (evalPoly f x)
 negatePoly :: Num a => Poly a -> Poly a
-negatePoly = fmap negate
+negatePoly = mapPoly negate
 
 -- |Given polynomials 'f' and 'g', computes the polynomial 'h' such that:
 -- 
 -- > evalPoly h x = evalPoly f x + evalPoly g x
 addPoly :: Num a => Poly a -> Poly a -> Poly a
-addPoly (polyCoeffs LE ->  a) (polyCoeffs LE ->  b) = poly LE (zipSum a b)
+addPoly p@(polyCoeffs LE ->  a) q@(polyCoeffs LE ->  b) = polyN n LE (zipSum a b)
+    where n = max (rawPolyLength p) (rawPolyLength q)
 
 {-# RULES
   "sum Poly"    forall ps. foldl addPoly zero ps = sumPolys ps
@@ -69,7 +66,8 @@ sumPolys ps = poly LE (foldl1 zipSum (map (polyCoeffs LE) ps))
 -- 
 -- > evalPoly h x = evalPoly f x * evalPoly g x
 multPoly :: Num a => Poly a -> Poly a -> Poly a
-multPoly (polyCoeffs LE -> xs) (polyCoeffs LE -> ys) = poly LE (multPolyLE xs ys)
+multPoly p@(polyCoeffs LE -> xs) q@(polyCoeffs LE -> ys) = polyN n LE (multPolyLE xs ys)
+    where n = 1 + rawPolyDegree p + rawPolyDegree q
 
 -- |(Internal): multiply polynomials in LE order.  O(length xs * length ys).
 multPolyLE :: Num a => [a] -> [a] -> [a]
@@ -84,7 +82,7 @@ multPolyLE xs (y:ys) = foldr mul [] xs
 -- 
 -- > evalPoly g x = evalPoly f x ^ n
 powPoly :: (Num a, Integral b) => Poly a -> b -> Poly a
-powPoly _ 0 = poly LE [1]
+powPoly _ 0 = one
 powPoly p 1 = p
 powPoly p n
     | n < 0     = error "powPoly: negative exponent"
@@ -192,8 +190,9 @@ evalPolyDerivs (polyCoeffs LE -> cs) x = trunc . zipWith (*) factorials $ foldr 
 --
 -- @contractPoly p a@ returns @(q,r)@ such that @q*(x-a) + r == p@
 contractPoly :: Num a => Poly a -> a -> (Poly a, a)
-contractPoly (polyCoeffs LE -> cs) a = (poly LE q, r)
+contractPoly p@(polyCoeffs LE -> cs) a = (polyN n LE q, r)
     where
+        n = rawPolyLength p
         cut remainder swap = (swap + remainder * a, remainder)
         (r,q) = mapAccumR cut 0 cs
 
@@ -210,12 +209,13 @@ gcdPoly a b
 -- |(internal) Normalize a polynomial so that its highest-order coefficient is 1
 monic :: Fractional a => Poly a -> Poly a
 monic p = case polyCoeffs BE p of
-    []      -> poly BE []
-    (c:cs)  -> poly BE (1:map (/c) cs)
+    []      -> polyN n BE []
+    (c:cs)  -> polyN n BE (1:map (/c) cs)
+    where n = rawPolyLength p
 
 -- |Compute the derivative of a polynomial.
 polyDeriv :: Num a => Poly a -> Poly a
-polyDeriv (polyCoeffs LE -> cs) = poly LE
+polyDeriv p@(polyCoeffs LE -> cs) = polyN (rawPolyDegree p) LE
     [ c * n
     | c <- drop 1 cs
     | n <- iterate (1+) 1
@@ -229,7 +229,7 @@ polyDerivs p = take (1 + polyDegree p) (iterate polyDeriv p)
 
 -- |Compute the definite integral (from 0 to x) of a polynomial.
 polyIntegral :: Fractional a => Poly a -> Poly a
-polyIntegral (polyCoeffs LE -> cs) = poly LE $ 0 :
+polyIntegral p@(polyCoeffs LE -> cs) = polyN (1 + rawPolyLength p) LE $ 0 :
     [ c / n
     | c <- cs
     | n <- iterate (1+) 1

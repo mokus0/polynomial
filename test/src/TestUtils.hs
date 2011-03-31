@@ -5,13 +5,21 @@ import Control.Applicative
 import Data.List
 import Data.VectorSpace
 import Math.Polynomial
+import Math.Polynomial.Type
 import Test.QuickCheck
+import qualified Data.Vector as V
 
 instance Arbitrary Endianness where
     arbitrary = elements [BE, LE]
 
 instance (Num a, Arbitrary a) => Arbitrary (Poly a) where
-    arbitrary = poly <$> arbitrary <*> arbitrary
+    arbitrary = polyCon <*> arbitrary <*> arbitrary
+        where
+            polyCon = elements
+                [ poly
+                , rawListPoly
+                , \e -> rawVectorPoly e . V.fromList
+                ]
 
 instance AdditiveGroup Rational where
     zeroV = 0
