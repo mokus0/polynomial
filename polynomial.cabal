@@ -8,7 +8,7 @@ build-type:             Simple
 author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
 license:                PublicDomain
-homepage:               /dev/null
+homepage:               https://github.com/mokus0/polynomial
 
 category:               Math, Numerical
 synopsis:               Polynomials
@@ -17,8 +17,8 @@ description:            A type for representing polynomials, several functions
                         interesting polynomial sequences.
 
 source-repository head
-  type: darcs
-  location: http://code.haskell.org/~mokus/polynomial
+  type: git
+  location: git://github.com/mokus0/polynomial.git
 
 Library
   ghc-options:          -Wall -fno-warn-name-shadowing
