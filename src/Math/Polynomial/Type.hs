@@ -149,7 +149,7 @@ zero = ListPoly True LE []
 
 -- |Make a 'Poly' from a list of coefficients using the specified coefficient order.
 poly :: Num a => Endianness -> [a] -> Poly a
-poly end = trim (0==) . rawVectorPoly end . V.fromList
+poly end = trim (0==) . rawListPoly end
 
 -- |Make a 'Poly' from a list of coefficients, at most 'n' of which are significant.
 polyN :: Num a => Int -> Endianness -> [a] -> Poly a
