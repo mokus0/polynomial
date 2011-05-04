@@ -95,8 +95,8 @@ powPoly p n
 -- > addPoly (multPoly q b) r == a
 quotRemPoly :: Fractional a => Poly a -> Poly a -> (Poly a, Poly a)
 quotRemPoly _ b | polyIsZero b = error "quotRemPoly: divide by zero"
-quotRemPoly (polyCoeffs BE -> u) (polyCoeffs BE -> v)
-    = go [] u (length u - length v)
+quotRemPoly p@(polyCoeffs BE -> u) q@(polyCoeffs BE -> v)
+    = go [] u (polyDegree p - polyDegree q)
     where
         v0  | null v    = 0
             | otherwise = head v
