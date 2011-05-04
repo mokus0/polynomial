@@ -11,6 +11,7 @@ module Math.Polynomial
     , quotRemPoly, quotPoly, remPoly
     , evalPoly, evalPolyDeriv, evalPolyDerivs
     , contractPoly
+    , monicPoly
     , gcdPoly, separateRoots
     , polyDeriv, polyDerivs, polyIntegral
     ) where
@@ -203,12 +204,12 @@ gcdPoly :: Fractional a => Poly a -> Poly a -> Poly a
 gcdPoly a b 
     | polyIsZero b  = if polyIsZero a
         then error "gcdPoly: gcdPoly zero zero is undefined"
-        else monic a
+        else monicPoly a
     | otherwise     = gcdPoly b (a `remPoly` b)
 
--- |(internal) Normalize a polynomial so that its highest-order coefficient is 1
-monic :: Fractional a => Poly a -> Poly a
-monic p = case polyCoeffs BE p of
+-- |Normalize a polynomial so that its highest-order coefficient is 1
+monicPoly :: Fractional a => Poly a -> Poly a
+monicPoly p = case polyCoeffs BE p of
     []      -> polyN n BE []
     (c:cs)  -> polyN n BE (1:map (/c) cs)
     where n = rawPolyLength p

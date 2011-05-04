@@ -233,6 +233,12 @@ coreTests =
             case contractPoly p a of
                 (q, r) -> evalPoly (addPoly p (poly BE [-r])) a == 0
         ]
+    , testGroup "monicPoly"
+        [ testProperty "sane" $ \p ->
+            if polyIsZero p 
+                then polyIsZero (monicPoly p)
+                else head (polyCoeffs BE (monicPoly p)) == 1
+        ]
     , testGroup "gcdPoly"
         [ testProperty "sane" $ \p q ->
             (polyDegree p + polyDegree q <= 20) &&
