@@ -18,11 +18,11 @@ Executable polynomial-tests
   ghc-options:          -threaded
   hs-source-dirs:       src
   main-is:              Tests.hs
-  build-depends:        base >= 3 && <5, 
+  build-depends:        base >= 3 && <5,
                         HUnit,
                         polynomial,
-                        QuickCheck >= 2, 
-                        test-framework, 
+                        QuickCheck >= 2,
+                        test-framework,
                         test-framework-hunit,
                         test-framework-quickcheck2,
                         vector,

@@ -35,5 +35,5 @@ Library
                         Math.Polynomial.Type
   other-modules:        Data.List.ZipSum
                         Math.Polynomial.Pretty
-                        
+
   build-depends:        base >= 3 && <5, deepseq, pretty, prettyclass, vector, vector-space
