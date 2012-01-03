@@ -10,6 +10,7 @@ module Math.Polynomial.Type
     , unboxedPoly, unboxedPolyN
     
     , mapPoly
+    , rawMapPoly
     
     , unboxPoly
     
@@ -113,10 +114,13 @@ instance Functor Poly where
         where n = UV.length cs
 
 -- |Like fmap, but able to preserve unboxedness
-mapPoly :: (a -> a) -> Poly a -> Poly a
-mapPoly f (ListPoly    _ e cs) = ListPoly    False e (   map f cs)
-mapPoly f (VectorPoly  _ e cs) = VectorPoly  False e ( V.map f cs)
-mapPoly f (UVectorPoly _ e cs) = UVectorPoly False e (UV.map f cs)
+mapPoly :: (Num a, Eq a) => (a -> a) -> Poly a -> Poly a
+mapPoly f = trim (0==) . rawMapPoly f
+
+rawMapPoly :: (a -> a) -> Poly a -> Poly a
+rawMapPoly f (ListPoly    _ e cs) = ListPoly    False e (   map f cs)
+rawMapPoly f (VectorPoly  _ e cs) = VectorPoly  False e ( V.map f cs)
+rawMapPoly f (UVectorPoly _ e cs) = UVectorPoly False e (UV.map f cs)
 
 instance AdditiveGroup a => AdditiveGroup (Poly a) where
     zeroV = ListPoly True LE []
@@ -149,17 +153,17 @@ zero :: Poly a
 zero = ListPoly True LE []
 
 -- |Make a 'Poly' from a list of coefficients using the specified coefficient order.
-poly :: Num a => Endianness -> [a] -> Poly a
+poly :: (Num a, Eq a) => Endianness -> [a] -> Poly a
 poly end = trim (0==) . rawListPoly end
 
 -- |Make a 'Poly' from a list of coefficients, at most 'n' of which are significant.
-polyN :: Num a => Int -> Endianness -> [a] -> Poly a
+polyN :: (Num a, Eq a) => Int -> Endianness -> [a] -> Poly a
 polyN n end = trim (0==) . rawVectorPoly end . V.fromListN n
 
-unboxedPoly :: (UV.Unbox a, Num a) => Endianness -> [a] -> Poly a
+unboxedPoly :: (UV.Unbox a, Num a, Eq a) => Endianness -> [a] -> Poly a
 unboxedPoly end = trim (0==) . rawUVectorPoly end . UV.fromList
 
-unboxedPolyN :: (UV.Unbox a, Num a) => Int -> Endianness -> [a] -> Poly a
+unboxedPolyN :: (UV.Unbox a, Num a, Eq a) => Int -> Endianness -> [a] -> Poly a
 unboxedPolyN n end = trim (0==) . rawUVectorPoly end . UV.fromListN n
 
 unboxPoly :: UV.Unbox a => Poly a -> Poly a
@@ -183,7 +187,7 @@ rawUVectorPoly :: UV.Unbox a => Endianness -> UV.Vector a -> Poly a
 rawUVectorPoly = UVectorPoly False
 
 -- |Get the degree of a a 'Poly' (the highest exponent with nonzero coefficient)
-polyDegree :: Num a => Poly a -> Int
+polyDegree :: (Num a, Eq a) => Poly a -> Int
 polyDegree p = rawPolyDegree (trim (0==) p)
 
 rawPolyDegree :: Poly a -> Int
@@ -196,13 +200,13 @@ rawPolyLength (UVectorPoly _ _ cs) = UV.length cs
 
 
 -- |Get the coefficients of a a 'Poly' in the specified order.
-polyCoeffs :: Num a => Endianness -> Poly a -> [a]
+polyCoeffs :: (Num a, Eq a) => Endianness -> Poly a -> [a]
 polyCoeffs end p = untrimmedPolyCoeffs end (trim (0==) p)
 
-polyIsZero :: Num a => Poly a -> Bool
+polyIsZero :: (Num a, Eq a) => Poly a -> Bool
 polyIsZero = null . rawPolyCoeffs . trim (0==)
 
-polyIsOne :: Num a => Poly a -> Bool
+polyIsOne :: (Num a, Eq a) => Poly a -> Bool
 polyIsOne = ([1]==) . rawPolyCoeffs . trim (0==)
 
 rawCoeffsOrder :: Poly a -> Endianness

@@ -22,12 +22,12 @@ us =
     ]
 
 -- |Compute the coefficients of the n'th Chebyshev polynomial of the first kind.
-t :: Num a => Int -> Poly a
+t :: (Num a, Eq a) => Int -> Poly a
 t n | n >= 0    = poly LE . map fromInteger . polyCoeffs LE $ ts !! n
     | otherwise = error "t: negative index"
 
 -- |Compute the coefficients of the n'th Chebyshev polynomial of the second kind.
-u :: Num a => Int -> Poly a
+u :: (Num a, Eq a) => Int -> Poly a
 u n | n >= 0    = poly LE . map fromInteger . polyCoeffs LE $ us !! n
     | otherwise = error "u: negative index"
 

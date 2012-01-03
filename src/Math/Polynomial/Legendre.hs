@@ -20,7 +20,7 @@ legendres = one : x :
     ]
 
 -- |Compute the coefficients of the n'th Legendre polynomial.
-legendre :: Fractional a => Int -> Poly a
+legendre :: (Fractional a, Eq a) => Int -> Poly a
 legendre n = poly LE . map fromRational . polyCoeffs LE $ legendres !! n
 
 -- |Evaluate the n'th Legendre polynomial at a point X.  Both more efficient

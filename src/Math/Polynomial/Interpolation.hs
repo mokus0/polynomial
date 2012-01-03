@@ -67,7 +67,7 @@ nevilleDiffs xys x = table
 -- inherently ill-conditioned problem.  In most cases it is both faster and 
 -- more accurate to use 'polyInterp' or 'nevilleDiffs' instead of evaluating
 -- a fitted polynomial.
-iterativePolyFit :: Fractional a => [(a,a)] -> Poly a
+iterativePolyFit :: (Fractional a, Eq a) => [(a,a)] -> Poly a
 iterativePolyFit = poly LE . loop
     where
         loop  [] = []
@@ -85,7 +85,7 @@ iterativePolyFit = poly LE . loop
 -- inherently ill-conditioned problem.  In most cases it is both faster and 
 -- more accurate to use 'polyInterp' or 'nevilleDiffs' instead of evaluating
 -- a fitted polynomial.
-lagrangePolyFit :: Fractional a => [(a,a)] -> Poly a
+lagrangePolyFit :: (Fractional a, Eq a) => [(a,a)] -> Poly a
 lagrangePolyFit xys = sumPolys
     [ scalePoly f (fst (contractPoly p x))
     | f <- zipWith (/) ys phis

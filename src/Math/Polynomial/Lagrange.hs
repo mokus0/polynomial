@@ -28,12 +28,12 @@ select (x:xs) = (x, xs) : [(y, x:ys) | (y, ys) <- select xs]
 -- 'Math.Polynomial.Interpolation.polyInterp' evaluates the interpolating
 -- polynomial directly, and is both quicker and more stable than any method
 -- I know of that computes the coefficients.
-lagrangeBasis :: Fractional a => [a] -> [Poly a]
+lagrangeBasis :: (Fractional a, Eq a) => [a] -> [Poly a]
 lagrangeBasis xs =
     [ foldl1 multPoly
         [ if q /= 0
             then poly LE [negate x_j/q, 1/q]
-            else error ("lagrangeBasis: duplicate root: " ++ show x_i)
+            else error ("lagrangeBasis: duplicate root")
         | x_j <- otherXs
         , let q = x_i - x_j
         ]
@@ -42,7 +42,7 @@ lagrangeBasis xs =
 
 -- |Construct the Lagrange "master polynomial" for the Lagrange barycentric form:
 -- That is, the monic polynomial with a root at each point in the input list.
-lagrange :: Num a => [a] -> Poly a
+lagrange :: (Num a, Eq a) => [a] -> Poly a
 lagrange [] = one
 lagrange xs = foldl1 multPoly
     [ poly LE [negate x_i, 1]

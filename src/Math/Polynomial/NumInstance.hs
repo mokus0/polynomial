@@ -9,7 +9,7 @@ module Math.Polynomial.NumInstance where
 
 import Math.Polynomial
 
-instance Num a => Num (Poly a) where
+instance (Num a, Eq a) => Num (Poly a) where
     fromInteger i = poly LE [fromInteger i]
     (+) = addPoly
     negate = negatePoly
