@@ -14,6 +14,7 @@ module Math.Polynomial.Type
     , unboxPoly
     
     , rawListPoly
+    , rawListPolyN
     , rawVectorPoly
     , rawUVectorPoly
     , trim
@@ -171,6 +172,9 @@ unboxPoly p@UVectorPoly{} = p
 -- coefficient list)
 rawListPoly :: Endianness -> [a] -> Poly a
 rawListPoly = ListPoly False
+
+rawListPolyN :: Int -> Endianness -> [a] -> Poly a
+rawListPolyN n e = rawVectorPoly e . V.fromListN n
 
 rawVectorPoly :: Endianness -> V.Vector a -> Poly a
 rawVectorPoly = VectorPoly False
