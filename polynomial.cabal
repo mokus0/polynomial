@@ -1,5 +1,5 @@
 name:                   polynomial
-version:                0.6.5
+version:                0.7
 stability:              provisional
 
 cabal-version:          >= 1.6
@@ -35,7 +35,9 @@ Library
                         Math.Polynomial.Newton
                         Math.Polynomial.NumInstance
                         Math.Polynomial.Type
+                        Math.Polynomial.VectorSpace
   other-modules:        Data.List.ZipSum
+                        Data.VectorSpace.WrappedNum
                         Math.Polynomial.Pretty
                         
   build-depends:        base >= 3 && <5, deepseq, pretty, prettyclass, vector, vector-space

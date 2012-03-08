@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, TypeFamilies #-}
 module TestUtils where
 
 import Control.Applicative
@@ -12,7 +12,7 @@ import qualified Data.Vector as V
 instance Arbitrary Endianness where
     arbitrary = elements [BE, LE]
 
-instance (Num a, Arbitrary a) => Arbitrary (Poly a) where
+instance (Num a, Eq a, Arbitrary a) => Arbitrary (Poly a) where
     arbitrary = polyCon <*> arbitrary <*> arbitrary
         where
             polyCon = elements
@@ -21,13 +21,13 @@ instance (Num a, Arbitrary a) => Arbitrary (Poly a) where
                 , \e -> rawVectorPoly e . V.fromList
                 ]
 
-instance AdditiveGroup Rational where
-    zeroV = 0
-    (^+^) = (+)
-    negateV = negate
-instance VectorSpace Rational where
-    type Scalar Rational = Rational
-    (*^) = (*)
+-- instance AdditiveGroup Rational where
+--     zeroV = 0
+--     (^+^) = (+)
+--     negateV = negate
+-- instance VectorSpace Rational where
+--     type Scalar Rational = Rational
+--     (*^) = (*)
 
 rev BE = LE
 rev LE = BE

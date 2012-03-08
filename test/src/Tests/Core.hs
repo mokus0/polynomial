@@ -134,7 +134,7 @@ coreTests =
                     evalPoly (composePoly f g) x 
                  == evalPoly f (evalPoly g x)
         , testProperty "associative" $ \f g h -> 
-            polyDegree f * polyDegree g * polyDegree h <= 750 ==>
+            polyDegree f * polyDegree g * polyDegree h <= 500 ==>
                     composePoly f (composePoly g h)
                  == composePoly (composePoly f g) h
         , testProperty "left  cancel" $ \p k ->

@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TypeFamilies, GADTs #-}
+{-# LANGUAGE ViewPatterns, TypeFamilies, GADTs, UndecidableInstances #-}
 -- |Low-level interface for the 'Poly' type.
 module Math.Polynomial.Type 
     ( Endianness(..)
@@ -11,6 +11,8 @@ module Math.Polynomial.Type
     
     , mapPoly
     , rawMapPoly
+    , wrapPoly
+    , unwrapPoly
     
     , unboxPoly
     
@@ -19,11 +21,13 @@ module Math.Polynomial.Type
     , rawVectorPoly
     , rawUVectorPoly
     , trim
+    , vTrim
     
     , polyIsZero
     , polyIsOne
     
     , polyCoeffs
+    , vPolyCoeffs
     , rawCoeffsOrder
     , rawPolyCoeffs
     , untrimmedPolyCoeffs
@@ -38,9 +42,14 @@ import Control.DeepSeq
 -- import Data.List.Extras.LazyLength
 import Data.AdditiveGroup
 import Data.VectorSpace
+import Data.VectorSpace.WrappedNum
 import Data.List.ZipSum
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as UV
+
+-- 'unsafeCoerce' is only used in 'wrapPoly' and 'unwrapPoly', which are
+-- type-safe alternatives to 'fmap'ing the 'WrappedNum' newtype constructor/projector
+import Unsafe.Coerce (unsafeCoerce)
 
 data Endianness 
     = BE 
@@ -85,14 +94,15 @@ instance Show a => Show (Poly a) where
 
 -- TODO: specialize for case where one is a list and other is a vector;
 --  use native order of the list
-instance (Num a, Eq a) => Eq (Poly a) where
+-- TODO: think about plain Num support...
+instance (AdditiveGroup a, Eq a) => Eq (Poly a) where
     p == q  
         | rawCoeffsOrder p == rawCoeffsOrder q
-        =  rawPolyCoeffs (trim (0==) p) 
-        == rawPolyCoeffs (trim (0==) q)
+        =  rawPolyCoeffs (trim (zeroV==) p) 
+        == rawPolyCoeffs (trim (zeroV==) q)
         | otherwise 
-        =  polyCoeffs LE p
-        == polyCoeffs LE q
+        =  vPolyCoeffs LE p
+        == vPolyCoeffs LE q
 
 -- -- Ord would be nice for some purposes, but it really just doesn't
 -- -- make sense (there is no natural order that is much better than any
@@ -122,15 +132,29 @@ rawMapPoly f (ListPoly    _ e cs) = ListPoly    False e (   map f cs)
 rawMapPoly f (VectorPoly  _ e cs) = VectorPoly  False e ( V.map f cs)
 rawMapPoly f (UVectorPoly _ e cs) = UVectorPoly False e (UV.map f cs)
 
+{-# RULES "wrapPoly/unwrapPoly"   forall x. wrapPoly (unwrapPoly x) = x #-}
+{-# RULES "unwrapPoly/wrapPoly"   forall x. unwrapPoly (wrapPoly x) = x #-}
+{-# RULES "wrapPoly.unwrapPoly"   wrapPoly . unwrapPoly = id #-}
+{-# RULES "unwrapPoly.wrapPoly"   unwrapPoly . wrapPoly = id #-}
+-- |like @fmap WrapNum@ but using 'unsafeCoerce' to avoid a pointless traversal
+wrapPoly :: Poly a -> Poly (WrappedNum a)
+wrapPoly = unsafeCoerce
+
+-- |like @fmap unwrapNum@ but using 'unsafeCoerce' to avoid a pointless traversal
+unwrapPoly :: Poly (WrappedNum a) -> Poly a
+unwrapPoly = unsafeCoerce
+
 instance AdditiveGroup a => AdditiveGroup (Poly a) where
     zeroV = ListPoly True LE []
     (untrimmedPolyCoeffs LE ->  a) ^+^ (untrimmedPolyCoeffs LE ->  b) 
         = ListPoly False LE (zipSumV a b)
     negateV = fmap negateV
 
-instance VectorSpace a => VectorSpace (Poly a) where
+instance (Eq a, VectorSpace a, AdditiveGroup (Scalar a), Eq (Scalar a)) => VectorSpace (Poly a) where
     type Scalar (Poly a) = Scalar a
-    (*^) s = fmap (s *^)
+    s *^ v
+         | s == zeroV   = zeroV
+         | otherwise    = vTrim (rawMapPoly (s *^) v)
 
 -- |Trim zeroes from a polynomial (given a predicate for identifying zero).
 -- In particular, drops zeroes from the highest-order coefficients, so that
@@ -147,6 +171,9 @@ trim isZero   (VectorPoly  _ LE cs) = VectorPoly  True LE (V.reverse . V.dropWhi
 trim isZero   (VectorPoly  _ BE cs) = VectorPoly  True BE (V.dropWhile isZero cs)
 trim isZero   (UVectorPoly _ LE cs) = UVectorPoly True LE (UV.reverse . UV.dropWhile isZero . UV.reverse $ cs)
 trim isZero   (UVectorPoly _ BE cs) = UVectorPoly True BE (UV.dropWhile isZero cs)
+
+vTrim :: (Eq a, AdditiveGroup a) => Poly a -> Poly a
+vTrim = trim (zeroV ==)
 
 -- |The polynomial \"0\"
 zero :: Poly a
@@ -201,7 +228,11 @@ rawPolyLength (UVectorPoly _ _ cs) = UV.length cs
 
 -- |Get the coefficients of a a 'Poly' in the specified order.
 polyCoeffs :: (Num a, Eq a) => Endianness -> Poly a -> [a]
-polyCoeffs end p = untrimmedPolyCoeffs end (trim (0==) p)
+polyCoeffs end p = untrimmedPolyCoeffs end (trim (0 ==) p)
+
+-- |Get the coefficients of a a 'Poly' in the specified order.
+vPolyCoeffs :: (Eq a, AdditiveGroup a) => Endianness -> Poly a -> [a]
+vPolyCoeffs end p = untrimmedPolyCoeffs end (vTrim p)
 
 polyIsZero :: (Num a, Eq a) => Poly a -> Bool
 polyIsZero = null . rawPolyCoeffs . trim (0==)

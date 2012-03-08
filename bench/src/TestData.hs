@@ -7,6 +7,8 @@ import Data.List
 import Data.Function
 import qualified Data.Set as S
 import Math.Polynomial
+import Math.Polynomial.Type
+import qualified Data.Vector as V
 
 -- Test data will be built up from "interesting" bits tagged with various strings,
 -- identifying relevant characteristics of the test data.
@@ -45,7 +47,10 @@ argList xs = sequence
     ]
 
 argPair x y = liftM2 (,) (retag ("1: " ++) x) (retag ("2: " ++) y)
-    
+
+listCon     = tag ["ListPoly"]   (rawListPoly)
+vectorCon   = tag ["VectorPoly"] (\e -> rawVectorPoly e . V.fromList)
+allCons     = [listCon, vectorCon]
 
 emptyList   = tag ["empty"]     []
 singleton   = tag ["singleton"] [4]
@@ -70,11 +75,15 @@ arbitrarySubset p = map snd . filter fst . zip (arbitraryMask p)
 -- take "about n" arbitrary elements of a list
 arbitrarySubset' n xs = arbitrarySubset (n / genericLength xs) xs
 
-allPolys = nubBy ((==) `on` untag)
-    [ liftM2 poly end coeffs
-    | end       <- endianness
-    , list      <- allLists
-    , mbSparse  <- [id, sparse]
-    , mbSign    <- [id, mixedSign]
-    , let coeffs = mbSparse (mbSign list)
+allPolys = 
+    [ construct `ap` end `ap` coeffs
+    | (end, coeffs) <- nubBy ((==) `on` (\(e,c) -> poly (untag e) (untag c)))
+        [ (end, coeffs)
+        | end       <- endianness
+        , list      <- allLists
+        , mbSparse  <- [id, sparse]
+        , mbSign    <- [id, mixedSign]
+        , let coeffs = mbSparse (mbSign list)
+        ]
+    , construct <- allCons
     ]

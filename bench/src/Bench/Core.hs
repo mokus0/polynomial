@@ -55,7 +55,7 @@ coreTests = evalData `seq`
     , bgroup "separateRoots" (unaryOpTestsF (rnf . separateRoots'))
     ]
 
-unaryOpTests :: (forall a. (Num a, NFData a) => Poly a -> ()) -> [Benchmark]
+unaryOpTests :: (forall a. (Num a, Eq a, NFData a) => Poly a -> ()) -> [Benchmark]
 unaryOpTests op = 
     [ bgroup "Int"     (testOp op intPolys)
     , bgroup "Float"   (testOp op floatPolys)
@@ -63,18 +63,20 @@ unaryOpTests op =
     , bgroup "Integer" (testOp op integerPolys)
     ]
 
-unaryOpTestsF :: (forall a. (Fractional a, NFData a) => Poly a -> ()) -> [Benchmark]
+unaryOpTestsF :: (forall a. (Fractional a, Eq a, NFData a) => Poly a -> ()) -> [Benchmark]
 unaryOpTestsF op = 
     [ bgroup "Float"   (testOp op floatPolys)
     , bgroup "Double"  (testOp op doublePolys)
     ]
 
 testOp op xs = 
-    [ bench (showTags x) (nf op (untag x))
+    [ rnf arg `seq`
+        bench (showTags x) (nf op arg)
     | x <- xs
-    ]
+    , let arg = untag x
+    ] 
 
-binOpTests :: (forall a. (Num a, NFData a) => Poly a -> Poly a -> Poly a) -> [Benchmark]
+binOpTests :: (forall a. (Num a, Eq a, NFData a) => Poly a -> Poly a -> Poly a) -> [Benchmark]
 binOpTests op = 
     [ bgroup "Int"     (testOp (uncurry op) intPolyPairs)
     , bgroup "Float"   (testOp (uncurry op) floatPolyPairs)
@@ -82,7 +84,7 @@ binOpTests op =
     , bgroup "Integer" (testOp (uncurry op) integerPolyPairs)
     ]
 
-binOpTestsF :: (forall a. (Fractional a, NFData a) => Poly a -> Poly a -> Poly a) -> [Benchmark]
+binOpTestsF :: (forall a. (Fractional a, Eq a, NFData a) => Poly a -> Poly a -> Poly a) -> [Benchmark]
 binOpTestsF op = 
     [ bgroup "Float"   (testOp (uncurry op) floatPolyPairs)
     , bgroup "Double"  (testOp (uncurry op) doublePolyPairs)
@@ -121,5 +123,6 @@ integerPolys = allPolys
 integerPolyPairs :: [Tagged (Poly Integer, Poly Integer)]
 integerPolyPairs = testPairs
 
-testPairs :: Num a => [Tagged (Poly a, Poly a)]
-testPairs = arbitrarySubset' 10 (liftM2 argPair allPolys allPolys)
+testPairs :: (Num a, Eq a) => [Tagged (Poly a, Poly a)]
+testPairs = liftM2 argPair allPolys allPolys
+    -- arbitrarySubset' 10 (liftM2 argPair allPolys allPolys)

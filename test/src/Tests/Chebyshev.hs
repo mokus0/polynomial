@@ -121,7 +121,7 @@ prop_tExtrema_near_1 eps (NonNegative n') = all (near1.abs.evalT n) (tExtrema n)
         near1 y = abs (y-1) <= eps (fromIntegral n)
 
 chebyshevFit_tests =
-    [ testProperty "sane (Double)"   (prop_chebyshevFit_sane (\n -> 1e-12 * n^2 :: Double))
+    [ testProperty "sane (Double)"   (prop_chebyshevFit_sane (\n -> 1e-11 * n^2 :: Double))
     , testProperty "sane (Float)"    (prop_chebyshevFit_sane (\n -> 1e-4  * n^2 :: Float))
     ]
 
