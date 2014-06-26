@@ -27,6 +27,7 @@ Library
   hs-source-dirs:       src
   exposed-modules:      Math.Polynomial
                         Math.Polynomial.Bernstein
+                        Math.Polynomial.Bernoulli
                         Math.Polynomial.Chebyshev
                         Math.Polynomial.Hermite
                         Math.Polynomial.Interpolation
