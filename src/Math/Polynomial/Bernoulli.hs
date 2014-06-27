@@ -3,9 +3,9 @@ module Math.Polynomial.Bernoulli (bernoulliPoly) where
 import Math.Polynomial
 import Data.VectorSpace
 
-{- | Bernouli polynomial with a nonstandard normalization
+{- | Bernoulli polynomial with a nonstandard normalization
 
-> b_i = bernouliPoly !! i
+> b_i = bernoulliPoly !! i
 
 Has the following generating function (C.2 in IH Sloan & S Joe
 "Lattice Methods for multiple integration" 1994 page 227)
