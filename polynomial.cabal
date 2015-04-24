@@ -20,6 +20,11 @@ source-repository head
   type: git
   location: git://github.com/mokus0/polynomial.git
 
+flag prettyclass
+  default:              False
+  description:          Newer versions of the "pretty" library
+                        include the old "prettyclass" package.
+
 Library
   ghc-options:          -Wall -fno-warn-name-shadowing
   if impl(ghc >= 7.4)
@@ -40,6 +45,14 @@ Library
   other-modules:        Data.List.ZipSum
                         Data.VectorSpace.WrappedNum
                         Math.Polynomial.Pretty
-                        
-  build-depends:        base >= 3 && <5, deepseq, pretty, prettyclass, vector, vector-space,
+  
+  build-depends:        base >= 3 && <5,
+                        deepseq,
+                        vector,
+                        vector-space,
                         vector-th-unbox >= 0.2.1
+
+  if flag(prettyclass)
+    build-depends:      pretty < 1.1.2, prettyclass
+  else
+    build-depends:      pretty >= 1.1.2
