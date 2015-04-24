@@ -5,6 +5,10 @@ module Data.VectorSpace.WrappedNum
 
 import Data.VectorSpace
 import qualified Data.Vector.Unboxed         as U
+-- Template Haskell in GHC 7.4 requires these imports to bring
+-- the `Vector` and `MVector` classes into scope
+import qualified Data.Vector.Generic
+import qualified Data.Vector.Generic.Mutable
 
 import Data.Vector.Unboxed.Deriving
 
