@@ -60,7 +60,7 @@ prop_us_parity (NonNegative n)
         where u = us !! (n `mod` 1200)
 
 prop_pell's_eqn (Positive a) =
-    let n = 1 +  a `mod` 800
+    let n = 1 +  a `mod` 400
      in powPoly (ts !! n) 2
      == addPoly one (multPoly (poly BE [1,0,-1]) (powPoly (us !! (n-1)) 2))
 
@@ -75,7 +75,7 @@ prop_evalT_sane (NonNegative a) x =
     let n = a `mod` 1000
      in evalT n x == evalPoly (t n) x
 
-prop_evalT_limits eps (NonNegative n) x = abs (evalT (n `mod` 5000) (onInterval (-1) 1 x)) <= 1 + eps
+prop_evalT_limits eps (NonNegative n) x = abs (evalT (n `mod` 1000) (onInterval (-1) 1 x)) <= 1 + eps
 
 prop_evalT_endpoints (NonNegative a) True  =
     let n = a `mod` 5000
@@ -125,7 +125,8 @@ chebyshevFit_tests =
     , testProperty "sane (Float)"    (prop_chebyshevFit_sane (\n -> 1e-4  * n^2 :: Float))
     ]
 
-prop_chebyshevFit_sane epsF (NonNegative n') f = all (<= eps) [relErr (f x) (f' x) | x <- tRoots n]
+prop_chebyshevFit_sane epsF (NonNegative n') f =
+    n' < 100 ==> all (<= eps) [relErr (f x) (f' x) | x <- tRoots n]
     where 
         eps = epsF (fromIntegral n)
         n = n' `mod` 500

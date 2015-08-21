@@ -2,6 +2,7 @@
 module TestUtils where
 
 import Control.Applicative
+import Control.Monad
 import Data.List
 import Data.VectorSpace
 import Math.Polynomial
@@ -20,6 +21,22 @@ instance (Num a, Eq a, Arbitrary a) => Arbitrary (Poly a) where
                 , rawListPoly
                 , \e -> rawVectorPoly e . V.fromList
                 ]
+
+newtype SmallPoly a = Small (Poly a)
+    deriving (Eq, Show)
+instance (Num a, Eq a, Arbitrary a) => Arbitrary (SmallPoly a) where
+    arbitrary = Small <$> (polyCon <*> arbitrary <*> smallList)
+        where
+            polyCon = elements
+                [ poly
+                , rawListPoly
+                , \e -> rawVectorPoly e . V.fromList
+                ]
+            
+            smallList = do
+                let binom n k = product [k+1 .. n] `div` product [1 .. n-k]
+                n <- frequency [ (fromInteger (binom 10 k), return k) | k <- [0..10]]
+                replicateM (fromInteger n) arbitrary
 
 -- instance AdditiveGroup Rational where
 --     zeroV = 0
