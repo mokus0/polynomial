@@ -22,10 +22,10 @@ instance (Num a, Eq a, Arbitrary a) => Arbitrary (Poly a) where
                 , \e -> rawVectorPoly e . V.fromList
                 ]
 
-newtype SmallPoly a = Small (Poly a)
+newtype SmallPoly a = SmallPoly (Poly a)
     deriving (Eq, Show)
 instance (Num a, Eq a, Arbitrary a) => Arbitrary (SmallPoly a) where
-    arbitrary = Small <$> (polyCon <*> arbitrary <*> smallList)
+    arbitrary = SmallPoly <$> (polyCon <*> arbitrary <*> smallList)
         where
             polyCon = elements
                 [ poly

@@ -133,7 +133,7 @@ coreTests =
             polyDegree f * polyDegree g <= 250 ==>
                     evalPoly (composePoly f g) x 
                  == evalPoly f (evalPoly g x)
-        , testProperty "associative" $ \(Small f) (Small g) (Small h) -> 
+        , testProperty "associative" $ \(SmallPoly f) (SmallPoly g) (SmallPoly h) -> 
             polyDegree f * polyDegree g * polyDegree h <= 500 ==>
                     composePoly f (composePoly g h)
                  == composePoly (composePoly f g) h
@@ -145,7 +145,7 @@ coreTests =
             composePoly p x == p
         , testProperty "right identity" $ \p ->
             composePoly x p == p
-        , testProperty "degree" $ \(Small p) (Small q) -> 
+        , testProperty "degree" $ \(SmallPoly p) (SmallPoly q) -> 
             polyDegree (composePoly p q)
                 <= (1 + polyDegree p) * (1 + polyDegree q)
         ]
@@ -176,13 +176,13 @@ coreTests =
     , testGroup "powPoly"
         [ testProperty "cancel"   $ \p -> polyIsOne (powPoly p 0)
         , testProperty "unit"     $ \p -> powPoly p 1 == p
-        , testProperty "multiply" $ \(Small p) (NonNegative a) (NonNegative b) ->
+        , testProperty "multiply" $ \(SmallPoly p) (NonNegative a) (NonNegative b) ->
             let a' = a `mod` 8; b' = b `mod` 8
              in multPoly (powPoly p a') (powPoly p b') == powPoly p (a' + b')
-        , testProperty "compose"  $ \(Small p) (NonNegative a) (NonNegative b) ->
+        , testProperty "compose"  $ \(SmallPoly p) (NonNegative a) (NonNegative b) ->
             let a' = a `mod` 6; b' = b `mod` 6
              in powPoly (powPoly p b') a' == powPoly p (a' * b')
-        , testProperty "sane"     $ \(Small p) (NonNegative n) ->
+        , testProperty "sane"     $ \(SmallPoly p) (NonNegative n) ->
             let n' = n `mod` 16
              in powPoly p n' == foldl' multPoly one (replicate n' p)
         , testProperty "degree" $ \p (NonNegative n) ->
@@ -190,7 +190,7 @@ coreTests =
              in polyDegree (powPoly p n') == max (-1) (n' * polyDegree p)
         ]
     , testGroup "quotRemPoly"
-        [ testProperty "sane" $ \a (Small b) -> 
+        [ testProperty "sane" $ \a (SmallPoly b) -> 
             not (polyIsZero b) ==> case quotRemPoly a b of
                 (q, r) -> polyDegree r < polyDegree b 
                        && addPoly (multPoly q b) r == a
