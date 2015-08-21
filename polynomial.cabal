@@ -2,7 +2,7 @@ name:                   polynomial
 version:                0.7.2
 stability:              provisional
 
-cabal-version:          >= 1.6
+cabal-version:          >= 1.8
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
@@ -57,3 +57,18 @@ Library
     build-depends:      pretty < 1.1.2, prettyclass
   else
     build-depends:      pretty >= 1.1.2
+
+Test-Suite polynomial-test
+  type:                 exitcode-stdio-1.0
+  hs-source-dirs:       test
+  main-is:              Tests.hs
+  
+  build-depends:        base >= 3 && <5, 
+                        HUnit,
+                        polynomial,
+                        QuickCheck >= 2, 
+                        test-framework, 
+                        test-framework-hunit,
+                        test-framework-quickcheck2,
+                        vector,
+                        vector-space
