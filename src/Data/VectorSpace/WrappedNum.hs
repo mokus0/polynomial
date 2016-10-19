@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeFamilies, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RankNTypes #-}
 module Data.VectorSpace.WrappedNum
   (WrappedNum(..)) where
 
@@ -19,7 +20,7 @@ newtype WrappedNum a = WrapNum { unwrapNum :: a }
         , Floating, RealFloat)
 
 derivingUnbox "Wrapped"
-    [t| (U.Unbox a) => WrappedNum a -> a |] [| unwrapNum |] [| \ a -> WrapNum a |]
+    [t| forall a. (U.Unbox a) => WrappedNum a -> a |] [| unwrapNum |] [| \ a -> WrapNum a |]
 
 instance Num a => AdditiveGroup (WrappedNum a) where
     zeroV = 0
