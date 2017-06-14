@@ -1,5 +1,5 @@
 name:                   polynomial
-version:                0.7.2
+version:                0.7.3
 stability:              provisional
 
 cabal-version:          >= 1.8
@@ -16,9 +16,7 @@ description:            A type for representing polynomials, several functions
                         for manipulating and evaluating them, and several
                         interesting polynomial sequences.
 
-tested-with:            GHC == 7.4.2,
-                        GHC == 7.6.3,
-                        GHC == 7.8.4,
+tested-with:            GHC == 7.8.4,
                         GHC == 7.10.1,
                         GHC == 7.11
 
