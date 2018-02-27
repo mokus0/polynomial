@@ -1,6 +1,7 @@
-{-# LANGUAGE 
+{-# LANGUAGE
         ParallelListComp, ViewPatterns,
-        FlexibleInstances, FlexibleContexts, IncoherentInstances
+        FlexibleInstances, FlexibleContexts, IncoherentInstances,
+        CPP
   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
@@ -11,6 +12,9 @@
 -- |This module exports a 'Pretty' instance for the 'Poly' type.
 module Math.Polynomial.Pretty () where
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 import Math.Polynomial.Type
 
 import Data.Complex
@@ -39,14 +43,14 @@ instance (RealFloat a, Pretty (Complex a)) => Pretty (Poly (Complex a)) where
 
 pPrintPolyWith prec end v p = parenSep (prec > 5) $ filter (not . isEmpty)
     [ v first coeff exp
-    | (coeff, exp) <- 
+    | (coeff, exp) <-
         (if end == BE then reverse else dropWhile ((0==).fst))
         (zip (polyCoeffs LE p) [0..])
     | first <- True : repeat False
     ]
 
-parenSep p xs = 
-    prettyParen (p && not (null (drop 1 xs)))   
+parenSep p xs =
+    prettyParen (p && not (null (drop 1 xs)))
         (hsep xs)
 
 pPrintOrdTerm   _ _ _ 0 _ = empty
@@ -69,4 +73,3 @@ pPrintUnOrdTerm   _ v f 1 1 = sign f 1 <> char v
 pPrintUnOrdTerm num v f c 1 = sign f 1 <> num c <> char v
 pPrintUnOrdTerm   _ v f 1 e = sign f 1 <> char v <> text "^" <> int e
 pPrintUnOrdTerm num v f c e = sign f 1 <> num c <> char v <> text "^" <> int e
-
