@@ -25,8 +25,8 @@ laurentTests =
         , testProperty "associative" $ \p q r ->
             addLaurent p (addLaurent q r) == addLaurent (addLaurent p q) r
         , testProperty "sane" $ forAll (arbitrary `suchThat` (> 0)) $ \x -> \p q ->
-                let e1 = evalLaurent x (addLaurent p q)
-                    e2 = evalLaurent x p + evalLaurent x q
+                let e1 = evalLaurent (addLaurent p q) x
+                    e2 = evalLaurent p x + evalLaurent q x
                 in e1 == e2
         ]
       , testGroup "multLaurent"
@@ -40,8 +40,8 @@ laurentTests =
         , testProperty "distributive" $ \p q r ->
             (multLaurent p (addLaurent q r) == addLaurent (multLaurent p q) (multLaurent p r))
         , testProperty "sane" $ forAll (arbitrary `suchThat` (> 0)) $ \x -> \p q ->
-            evalLaurent x (multLaurent p q)==
-            evalLaurent x p * evalLaurent x q
+            evalLaurent (multLaurent p q) x ==
+            evalLaurent p x * evalLaurent q x
         ]
       , testGroup "quotLaurent"
         [ testProperty "sane" $ \a b ->

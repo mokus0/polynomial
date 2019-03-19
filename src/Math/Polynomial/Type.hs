@@ -1,41 +1,41 @@
 {-# LANGUAGE ViewPatterns, TypeFamilies, GADTs, UndecidableInstances #-}
 -- |Low-level interface for the 'Poly' type.
-module Math.Polynomial.Type 
+module Math.Polynomial.Type
     ( Endianness(..)
     , Poly
-    
+
     , zero
-    
+
     , poly, polyN
     , unboxedPoly, unboxedPolyN
-    
+
     , mapPoly
     , rawMapPoly
     , wrapPoly
     , unwrapPoly
-    
+
     , unboxPoly
-    
+
     , rawListPoly
     , rawListPolyN
     , rawVectorPoly
     , rawUVectorPoly
     , trim
     , vTrim
-    
+
     , polyIsZero
     , polyIsOne
-    
+
     , polyCoeffs
     , vPolyCoeffs
     , rawCoeffsOrder
     , rawPolyCoeffs
     , untrimmedPolyCoeffs
-    
+
     , polyDegree
     , rawPolyDegree
     , rawPolyLength
-    
+
     ) where
 
 import Control.DeepSeq
@@ -51,8 +51,8 @@ import qualified Data.Vector.Unboxed as UV
 -- type-safe alternatives to 'fmap'ing the 'WrappedNum' newtype constructor/projector
 import Unsafe.Coerce (unsafeCoerce)
 
-data Endianness 
-    = BE 
+data Endianness
+    = BE
     -- ^ Big-Endian (head is highest-order term)
     | LE
     -- ^ Little-Endian (head is const term)
@@ -72,7 +72,7 @@ data Poly a where
         , endianness :: !Endianness
         , vCoeffs    :: !(V.Vector a)
         } -> Poly a
-    UVectorPoly :: UV.Unbox a => 
+    UVectorPoly :: UV.Unbox a =>
         { trimmed    :: !Bool
         , endianness :: !Endianness
         , uvCoeffs   :: !(UV.Vector a)
@@ -85,7 +85,7 @@ instance NFData a => NFData (Poly a) where
 
 instance Show a => Show (Poly a) where
     showsPrec p f
-        = showParen (p > 10) 
+        = showParen (p > 10)
             ( showString "poly "
             . showsPrec 11 (rawCoeffsOrder f)
             . showChar ' '
@@ -96,11 +96,11 @@ instance Show a => Show (Poly a) where
 --  use native order of the list
 -- TODO: think about plain Num support...
 instance (AdditiveGroup a, Eq a) => Eq (Poly a) where
-    p == q  
+    p == q
         | rawCoeffsOrder p == rawCoeffsOrder q
-        =  rawPolyCoeffs (trim (zeroV==) p) 
+        =  rawPolyCoeffs (trim (zeroV==) p)
         == rawPolyCoeffs (trim (zeroV==) q)
-        | otherwise 
+        | otherwise
         =  vPolyCoeffs LE p
         == vPolyCoeffs LE q
 
@@ -146,7 +146,7 @@ unwrapPoly = unsafeCoerce
 
 instance AdditiveGroup a => AdditiveGroup (Poly a) where
     zeroV = ListPoly True LE []
-    (untrimmedPolyCoeffs LE ->  a) ^+^ (untrimmedPolyCoeffs LE ->  b) 
+    (untrimmedPolyCoeffs LE ->  a) ^+^ (untrimmedPolyCoeffs LE ->  b)
         = ListPoly False LE (zipSumV a b)
     negateV = fmap negateV
 
@@ -159,8 +159,8 @@ instance (Eq a, VectorSpace a, AdditiveGroup (Scalar a), Eq (Scalar a)) => Vecto
 -- |Trim zeroes from a polynomial (given a predicate for identifying zero).
 -- In particular, drops zeroes from the highest-order coefficients, so that
 -- @0x^n + 0x^(n-1) + 0x^(n-2) + ... + ax^k + ...@, @a /= 0@
--- is normalized to @ax^k + ...@.  
--- 
+-- is normalized to @ax^k + ...@.
+--
 -- The 'Eq' instance for 'Poly' and all the standard constructors / destructors
 -- are defined using @trim (0==)@.
 trim :: (a -> Bool) -> Poly a -> Poly a
@@ -199,7 +199,7 @@ unboxPoly (VectorPoly t e cs) = UVectorPoly t e (UV.fromListN (V.length cs) (V.t
 unboxPoly p@UVectorPoly{} = p
 
 -- |Make a 'Poly' from a list of coefficients using the specified coefficient order,
--- without the 'Num' context (and therefore without trimming zeroes from the 
+-- without the 'Num' context (and therefore without trimming zeroes from the
 -- coefficient list)
 rawListPoly :: Endianness -> [a] -> Poly a
 rawListPoly = ListPoly False
