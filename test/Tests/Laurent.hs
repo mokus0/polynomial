@@ -1,4 +1,4 @@
-{-# LANGUAGE ExtendedDefaultRules, TypeApplications, TypeSynonymInstances, FlexibleInstances ,OverlappingInstances #-}
+{-# LANGUAGE ExtendedDefaultRules, TypeSynonymInstances, FlexibleInstances #-}
 module Tests.Laurent (laurentTests) where
 
 import Data.List
@@ -14,45 +14,39 @@ import TestUtils
 
 -- Use exact math everywhere; we're not testing stability or speed,
 -- just mathematical soundness.
-default (Integer, Rational)
-
-instance (Num a, Eq a, Arbitrary a) => Arbitrary (Laurent a) where
-    arbitrary = newLaurent <$> arbitrary <*> arbitrary
-
-instance Arbitrary Rational where
-  arbitrary = fromInteger <$> arbitrary
+default (Rational)
 
 laurentTests =
   [ testGroup "Laurent polynomials"
       [ testGroup "addLaurent"
-        [ testProperty "left  unit"  $ \p     -> addLaurent @Rational zeroLaurent p == p
-        , testProperty "right unit"  $ \p     -> addLaurent @Rational p zeroLaurent == p
-        , testProperty "commutative" $ \p q   -> addLaurent @Rational p q == addLaurent q p
+        [ testProperty "left  unit"  $ \p     -> addLaurent zeroLaurent p == p
+        , testProperty "right unit"  $ \p     -> addLaurent p zeroLaurent == p
+        , testProperty "commutative" $ \p q   -> addLaurent p q == addLaurent q p
         , testProperty "associative" $ \p q r ->
-            addLaurent @Rational p (addLaurent q r) == addLaurent (addLaurent p q) r
+            addLaurent p (addLaurent q r) == addLaurent (addLaurent p q) r
         , testProperty "sane" $ forAll (arbitrary `suchThat` (> 0)) $ \x -> \p q ->
-                let e1 = evalLaurent @Rational x (addLaurent p q)
+                let e1 = evalLaurent x (addLaurent p q)
                     e2 = evalLaurent x p + evalLaurent x q
                 in e1 == e2
         ]
       , testGroup "multLaurent"
-        [ testProperty "left  cancel" $ \p     -> laurentIsZero (multLaurent @Rational zeroLaurent p)
-        , testProperty "right cancel" $ \p     -> laurentIsZero (multLaurent @Rational p zeroLaurent)
-        , testProperty "left  unit"   $ \p     -> multLaurent @Rational oneLaurent p == p
-        , testProperty "right  unit"  $ \p     -> multLaurent @Rational p oneLaurent == p
-        , testProperty "commutative"  $ \p q   -> multLaurent @Rational p q == multLaurent q p
+        [ testProperty "left  cancel" $ \p     -> laurentIsZero (multLaurent zeroLaurent p)
+        , testProperty "right cancel" $ \p     -> laurentIsZero (multLaurent p zeroLaurent)
+        , testProperty "left  unit"   $ \p     -> multLaurent oneLaurent p == p
+        , testProperty "right  unit"  $ \p     -> multLaurent p oneLaurent == p
+        , testProperty "commutative"  $ \p q   -> multLaurent p q == multLaurent q p
         , testProperty "associative"  $ \p q r ->
-            multLaurent @Rational p (multLaurent q r) == multLaurent (multLaurent p q) r
+            multLaurent p (multLaurent q r) == multLaurent (multLaurent p q) r
         , testProperty "distributive" $ \p q r ->
-            (multLaurent @Rational p (addLaurent q r) == addLaurent (multLaurent p q) (multLaurent p r))
+            (multLaurent p (addLaurent q r) == addLaurent (multLaurent p q) (multLaurent p r))
         , testProperty "sane" $ forAll (arbitrary `suchThat` (> 0)) $ \x -> \p q ->
-            evalLaurent x (multLaurent @Rational p q)==
+            evalLaurent x (multLaurent p q)==
             evalLaurent x p * evalLaurent x q
         ]
       , testGroup "quotLaurent"
         [ testProperty "sane" $ \a b ->
             not (laurentIsZero b) ==>
-              let (q, r) = quotRemLaurent @Rational a b
+              let (q, r) = quotRemLaurent a b
               in addLaurent (multLaurent q b) r == a
         ]
       ]
