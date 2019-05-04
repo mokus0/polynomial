@@ -7,6 +7,7 @@ import Data.List
 import Data.VectorSpace
 import Math.Polynomial
 import Math.Polynomial.Type
+import Math.Polynomial.Laurent
 import Test.QuickCheck
 import qualified Data.Vector as V
 
@@ -22,6 +23,9 @@ instance (Num a, Eq a, Arbitrary a) => Arbitrary (Poly a) where
                 , \e -> rawVectorPoly e . V.fromList
                 ]
 
+instance (Num a, Eq a, Arbitrary a) => Arbitrary (Laurent a) where
+    arbitrary = newLaurent <$> arbitrary <*> arbitrary
+
 newtype SmallPoly a = SmallPoly (Poly a)
     deriving (Eq, Show)
 instance (Num a, Eq a, Arbitrary a) => Arbitrary (SmallPoly a) where
@@ -32,7 +36,7 @@ instance (Num a, Eq a, Arbitrary a) => Arbitrary (SmallPoly a) where
                 , rawListPoly
                 , \e -> rawVectorPoly e . V.fromList
                 ]
-            
+
             smallList = do
                 let binom n k = product [k+1 .. n] `div` product [1 .. n-k]
                 n <- frequency [ (fromInteger (binom 10 k), return k) | k <- [0..10]]
