@@ -11,6 +11,7 @@
 -- |This module exports a 'Pretty' instance for the 'Poly' type.
 module Math.Polynomial.Pretty () where
 
+import Prelude hiding ((<>))
 import Math.Polynomial.Type
 
 import Data.Complex
