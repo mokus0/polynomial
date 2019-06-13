@@ -1,8 +1,11 @@
-{-# LANGUAGE RankNTypes, ViewPatterns #-}
+{-# LANGUAGE RankNTypes, ViewPatterns, OverloadedStrings #-}
 module Math.Polynomial.Laurent where
 
 import Data.List (dropWhileEnd)
 import Math.Polynomial
+import Data.Maybe
+
+import Text.PrettyPrint.Leijen.Text as PP
 
 data Laurent a = Laurent Int [a]
   deriving (Show, Eq)
@@ -146,3 +149,28 @@ instance (Num a, Eq a) => Num (Laurent a) where
 
   abs     = error    "abs cannot be defined for the Laurent type"
   signum  = error "signum cannot be defined for the Laurent type"
+
+instance (Eq f, Num f, Pretty f) => Pretty (Laurent f) where
+  pretty p = hcat . punctuate (text "+") . reverse . prettyCoeffs $ coeffs
+    where
+      coeffs = zip ([expLaurent p ..]) (coeffsLaurent p)
+      prettyCoeff c = if c == 1
+                      then PP.empty
+                      else pretty c
+
+      prettyX deg
+        | deg == 0 = PP.empty
+        | deg == 1 = text "x"
+        | otherwise = text "x^" <> pretty deg
+
+      prettyTerm deg c
+        | deg == 0 && c == 1 = Just $ text "1"
+        | c == 0 = Nothing
+        | otherwise = Just $ prettyCoeff c <> prettyX deg
+
+      prettyCoeffs []
+        = [text "0"]
+      prettyCoeffs coeffs
+        = catMaybes
+          . fmap (uncurry prettyTerm)
+          $ coeffs

@@ -51,7 +51,8 @@ Library
                         deepseq,
                         vector,
                         vector-space,
-                        vector-th-unbox >= 0.2.1
+                        vector-th-unbox >= 0.2.1,
+                        wl-pprint-text
 
   if impl(ghc < 7.10)
     build-depends:      pretty < 1.1.2, prettyclass
