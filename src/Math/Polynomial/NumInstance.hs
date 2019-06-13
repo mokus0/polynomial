@@ -17,3 +17,5 @@ instance (Num a, Eq a) => Num (Poly a) where
 
     abs     = error    "abs cannot be defined for the Poly type"
     signum  = error "signum cannot be defined for the Poly type"
+
+
