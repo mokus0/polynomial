@@ -11,6 +11,9 @@
 -- |This module exports a 'Pretty' instance for the 'Poly' type.
 module Math.Polynomial.Pretty () where
 
+import qualified Prelude
+import Prelude (Bool(..), RealFloat, Eq(..), Ord(..), Num(..), not, null, otherwise, (&&), zip, (.), filter, ($), drop, repeat, dropWhile, reverse, fst)
+
 import Math.Polynomial.Type
 
 import Data.Complex
