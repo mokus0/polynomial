@@ -63,7 +63,7 @@ Test-Suite polynomial-test
   main-is:              Tests.hs
   
   build-depends:        base >= 3 && <5, 
-                        HUnit == 1.2.*,
+                        HUnit >= 1.2,
                         polynomial,
                         QuickCheck >= 2, 
                         test-framework, 
