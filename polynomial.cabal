@@ -61,6 +61,10 @@ Test-Suite polynomial-test
   type:                 exitcode-stdio-1.0
   hs-source-dirs:       test
   main-is:              Tests.hs
+  other-modules:        Tests.Core
+                        Tests.Bernstein
+                        Tests.Chebyshev
+                        Tests.Hermite
   
   build-depends:        base >= 3 && <5, 
                         HUnit >= 1.2,
