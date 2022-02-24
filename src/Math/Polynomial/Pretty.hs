@@ -14,6 +14,7 @@ module Math.Polynomial.Pretty () where
 import Math.Polynomial.Type
 
 import Data.Complex
+import Prelude hiding ((<>))
 
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
